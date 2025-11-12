@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropGeo Analytics - Add Farm</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/ol@v8.2.0/dist/ol.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: 
+                linear-gradient(135deg, rgba(34, 139, 34, 0.1) 0%, rgba(30, 144, 255, 0.1) 100%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="%23ffffff" stroke-width="0.2" opacity="0.1"/></pattern></defs><rect width="1600" height="900" fill="%23f0f9ff"/><rect width="1600" height="900" fill="url(%23grid)"/><g opacity="0.05"><circle cx="200" cy="200" r="80" fill="%2332CD32"/><circle cx="800" cy="300" r="120" fill="%2332CD32"/><circle cx="1200" cy="150" r="100" fill="%2332CD32"/><circle cx="400" cy="600" r="90" fill="%2332CD32"/><circle cx="1000" cy="700" r="110" fill="%2332CD32"/></g></svg>') center/cover;
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-logout {
+            background: #ef4444;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 32px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-content {
+            padding: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            font-weight: 500;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #059669;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+
+        .map-container {
+            height: 400px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-tools {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .map-tool {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-tool:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        .map-tool.active {
+            background: #059669;
+            color: white;
+        }
+   .btn-about {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-about:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+        }
+
+        .area-display {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .ol-control {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border-radius: 8px !important;
+        }
+
+        .ol-zoom {
+            top: 80px !important;
+            left: 8px !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .main-content {
+                padding: 20px 16px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <span class="logo-icon">🛰️</span>
+                <h1>CropGeo Analytics</h1>
+            </div>
+            <div class="nav-buttons">
+                <a href="dashboard.html" class="nav-btn">
+                    📊 Dashboard
+                </a>
+               <button class="nav-btn btn-about" onclick="showAbout()">
+                    ℹ️ About
+                </button>
+                <button class="nav-btn btn-logout" onclick="logout()">
+                    🚪 Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Add New Farm</h1>
+            <p class="page-subtitle">Register your agricultural land with satellite-powered precision mapping</p>
+        </div>
+
+        <div class="form-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    🌱 Farm Registration
+                </h2>
+            </div>
+            <div class="form-content">
+                <form id="addFarmForm">
+                    <div class="form-grid">
+                        <div class="form-section">
+                            <h3 class="section-title">📋 Farm Details</h3>
+                            
+                            <div class="form-group">
+                                <label for="farmName">Farm Name</label>
+                                <input type="text" id="farmName" name="farmName" placeholder="Enter farm name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cropType">Crop Type</label>
+                                <select id="cropType" name="cropType" required>
+                                    <option value="">Select crop type</option>
+                                    <option value="wheat">🌾 Wheat</option>
+                                    <option value="corn">🌽 Corn</option>
+                                    <option value="soybeans">🫘 Soybeans</option>
+                                    <option value="rice">🍚 Rice</option>
+                                    <option value="cotton">🌿 Cotton</option>
+                                    <option value="barley">🌾 Barley</option>
+                                    <option value="oats">🌾 Oats</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="farmSize">Size (acres)</label>
+                                <input type="number" id="farmSize" name="farmSize" placeholder="Enter size in acres" min="1" step="0.1" required>
+                                <div class="area-display" id="calculatedArea" style="display: none;">
+                                    Calculated from map: <span id="mapArea">0</span> acres
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">🗺️ Farm Boundary</h3>
+                            
+                            <div class="map-container">
+                                <div id="map"></div>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            ✅ Submit Farm
+                        </button>
+                        <a href="dashboard.html" class="btn btn-secondary">
+                            ❌ Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let map;
+        let vectorSource;
+        let drawInteraction;
+        let currentTool = 'draw';
+        let farmBoundary = [];
+        let satelliteView = true;
+
+        // Initialize OpenLayers map
+        function initMap() {
+            // Vector source for drawing
+            vectorSource = new ol.source.Vector();
+            
+            const vectorLayer = new ol.layer.Vector({
+                source: vectorSource,
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(5, 150, 105, 0.2)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#059669',
+                        width: 3
+                    }),
+                    image: new ol.style.Circle({
+                        radius: 7,
+                        fill: new ol.style.Fill({
+                            color: '#059669'
+                        })
+                    })
+                })
+            });
+
+            // Satellite layer
+            const satelliteLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    attributions: 'Tiles © Esri'
+                })
+            });
+
+            // Street map layer
+            const streetLayer = new ol.layer.Tile({
+                source: new ol.source.OSM()
+            });
+
+            map = new ol.Map({
+                target: 'map',
+                layers: [satelliteLayer, vectorLayer],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([-95.7129, 37.0902]), // Center of USA
+                    zoom: 10
+                })
+            });
+
+            // Add drawing interaction
+            drawInteraction = new ol.interaction.Draw({
+                source: vectorSource,
+                type: 'Polygon'
+            });
+
+            drawInteraction.on('drawend', function(event) {
+                const geometry = event.feature.getGeometry();
+                const area = ol.sphere.getArea(geometry);
+                const areaInAcres = (area * 0.000247105).toFixed(1); // Convert m² to acres
+                updateCalculatedArea(parseFloat(areaInAcres));
+            });
+
+            map.addInteraction(drawInteraction);
+        }
+
+        function showAbout() {
+            alert('CropGeo Analytics - Advanced satellite-powered agricultural monitoring and analytics platform. Add your farms to start monitoring crop health and optimizing yields.');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                alert('Logging out... Redirecting to login page.');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function setMapTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.map-tool').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Remove existing interactions
+            map.removeInteraction(drawInteraction);
+            
+            if (tool === 'draw') {
+                drawInteraction = new ol.interaction.Draw({
+                    source: vectorSource,
+                    type: 'Polygon'
+                });
+                
+                drawInteraction.on('drawend', function(event) {
+                    const geometry = event.feature.getGeometry();
+                    const area = ol.sphere.getArea(geometry);
+                    const areaInAcres = (area * 0.000247105).toFixed(1);
+                    updateCalculatedArea(parseFloat(areaInAcres));
+                });
+                
+                map.addInteraction(drawInteraction);
+            }
+        }
+
+        function clearMap() {
+            vectorSource.clear();
+            updateCalculatedArea(0);
+            alert('Farm boundary cleared. You can now draw a new boundary.');
+        }
+
+        function toggleSatellite() {
+            satelliteView = !satelliteView;
+            const layers = map.getLayers().getArray();
+            
+            // Remove current base layer
+            map.removeLayer(layers[0]);
+            
+            if (satelliteView) {
+                // Add satellite layer
+                const satelliteLayer = new ol.layer.Tile({
+                    source: new ol.source.XYZ({
+                        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                        attributions: 'Tiles © Esri'
+                    })
+                });
+                map.getLayers().insertAt(0, satelliteLayer);
+                event.target.textContent = '🛰️ Satellite';
+            } else {
+                // Add street map layer
+                const streetLayer = new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                });
+                map.getLayers().insertAt(0, streetLayer);
+                event.target.textContent = '🗺️ Street';
+            }
+        }
+
+        function updateCalculatedArea(acres) {
+            const areaDisplay = document.getElementById('calculatedArea');
+            const mapArea = document.getElementById('mapArea');
+            
+            if (acres > 0) {
+                mapArea.textContent = acres.toFixed(1);
+                areaDisplay.style.display = 'block';
+                document.getElementById('farmSize').value = acres.toFixed(1);
+            } else {
+                areaDisplay.style.display = 'none';
+            }
+        }
+
+        document.getElementById('addFarmForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const farmName = formData.get('farmName');
+            const cropType = formData.get('cropType');
+            const farmSize = formData.get('farmSize');
+            
+            if (!farmName || !cropType || !farmSize) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            if (vectorSource.getFeatures().length === 0) {
+                alert('Please draw the farm boundary on the map.');
+                return;
+            }
+            
+            // Simulate form submission
+            const submitBtn = this.querySelector('.btn-primary');
+            submitBtn.textContent = '⏳ Adding Farm...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                alert(`Farm "${farmName}" has been successfully added to your dashboard!\n\nDetails:\n- Crop: ${cropType}\n- Size: ${farmSize} acres\n- Boundary: Polygon mapped with satellite precision`);
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        });
+
+        // Add loading animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            initMap();
+            
+            // Form animation
+            const formCard = document.querySelector('.form-card');
+            formCard.style.opacity = '0';
+            formCard.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                formCard.style.transition = 'all 0.8s ease';
+                formCard.style.opacity = '1';
+                formCard.style.transform = 'translateY(0)';
+            }, 200);
+        });
+    </script>
+</body>
+</html>

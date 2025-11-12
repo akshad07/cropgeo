@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropGeo Analytics - Farm Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css">
+    <script src="https://cdn.jsdelivr.net/npm/ol@v8.2.0/dist/ol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f0f9ff;
+            color: #1f2937;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn-logout {
+            background: #ef4444;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .controls-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #059669;
+        }
+
+        .date-slider-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .date-slider-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-slider {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .date-list {
+            display: flex;
+            gap: 12px;
+            transition: transform 0.3s ease;
+            padding: 8px 0;
+        }
+
+        .date-card {
+            min-width: 140px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .date-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .date-card.selected {
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            color: white;
+            border-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .date-main {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .date-satellite {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .slider-nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .slider-btn {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .slider-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .slider-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        #climateChart {
+            max-height: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .controls-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            #map {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                🛰️ CropGeo Analytics
+            </div>
+            <div class="nav-buttons">
+                <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
+                <button class="nav-btn" onclick="showAbout()">ℹ️ About</button>
+                <button class="nav-btn btn-logout" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Farm: Green Valley Farm (245 acres)</label>
+                <span style="color: #6b7280; font-size: 12px;">🌾 Wheat • 40.7128°N, 74.0060°W</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Vegetation Index</label>
+                <select id="indexType" onchange="updateIndex()">
+                    <option value="ndvi">NDVI</option>
+                    <option value="evi">EVI</option>
+                    <option value="ndmi">NDMI</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Date Range</label>
+                <input type="date" id="startDate" value="2024-01-01" onchange="updateDates()">
+                <input type="date" id="endDate" value="2024-12-31" onchange="updateDates()" style="margin-top: 8px;">
+            </div>
+        </div>
+
+        <div class="date-slider-container">
+            <div class="date-slider-title">
+                📅 Available Satellite Data
+            </div>
+            <div class="date-slider">
+                <div class="date-list" id="dateList">
+                    <div class="date-card selected" onclick="selectDateCard(this)">
+                        <div class="date-main">Jan 15, 2024</div>
+                        <div class="date-satellite">Landsat 8</div>
+                    </div>
+                    <div class="date-card" onclick="selectDateCard(this)">
+                        <div class="date-main">Feb 01, 2024</div>
+                        <div class="date-satellite">Sentinel-2</div>
+                    </div>
+                    <div class="date-card" onclick="selectDateCard(this)">
+                        <div class="date-main">Feb 15, 2024</div>
+                        <div class="date-satellite">Landsat 8</div>
+                    </div>
+                    <div class="date-card" onclick="selectDateCard(this)">
+                        <div class="date-main">Mar 01, 2024</div>
+                        <div class="date-satellite">Sentinel-2</div>
+                    </div>
+                    <div class="date-card" onclick="selectDateCard(this)">
+                        <div class="date-main">Mar 15, 2024</div>
+                        <div class="date-satellite">Landsat 8</div>
+                    </div>
+                    <div class="date-card" onclick="selectDateCard(this)">
+                        <div class="date-main">Apr 01, 2024</div>
+                        <div class="date-satellite">Sentinel-2</div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-nav">
+                <button class="slider-btn" onclick="slideLeft()" id="prevBtn">← Previous</button>
+                <button class="slider-btn" onclick="slideRight()" id="nextBtn">Next →</button>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="avgValue">0.72</div>
+                <div class="stat-label">Average NDVI</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="maxValue">0.89</div>
+                <div class="stat-label">Maximum</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📉</div>
+                <div class="stat-value" id="minValue">0.45</div>
+                <div class="stat-label">Minimum</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="medianValue">0.71</div>
+                <div class="stat-label">Median</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📏</div>
+                <div class="stat-value" id="stdValue">0.12</div>
+                <div class="stat-label">Std Deviation</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🌡️</div>
+                <div class="stat-value">22°C</div>
+                <div class="stat-label">Temperature</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🌧️</div>
+                <div class="stat-value">45mm</div>
+                <div class="stat-label">Rainfall</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💧</div>
+                <div class="stat-value">68%</div>
+                <div class="stat-label">Humidity</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Climate Forecast Trends</div>
+            <canvas id="climateChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let map;
+
+        function initMap() {
+            const farmCoords = [
+                [-74.0060, 40.7128],
+                [-74.0050, 40.7128],
+                [-74.0050, 40.7138],
+                [-74.0060, 40.7138],
+                [-74.0060, 40.7128]
+            ];
+
+            const farmGeometry = new ol.geom.Polygon([farmCoords.map(coord => ol.proj.fromLonLat(coord))]);
+            const farmFeature = new ol.Feature({ geometry: farmGeometry });
+
+            const vectorSource = new ol.source.Vector({ features: [farmFeature] });
+            const vectorLayer = new ol.layer.Vector({
+                source: vectorSource,
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({ color: 'rgba(5, 150, 105, 0.3)' }),
+                    stroke: new ol.style.Stroke({ color: '#059669', width: 3 })
+                })
+            });
+
+            const satelliteLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                })
+            });
+
+            map = new ol.Map({
+                target: 'map',
+                layers: [satelliteLayer, vectorLayer],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([-74.0055, 40.7133]),
+                    zoom: 16
+                })
+            });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('climateChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [22, 24, 26, 23, 21, 25, 27],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Rainfall (mm)',
+                        data: [5, 0, 12, 8, 15, 3, 0],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Humidity (%)',
+                        data: [68, 65, 72, 70, 75, 63, 60],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        yAxisID: 'y2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left' },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
+                        y2: { type: 'linear', display: false }
+                    }
+                }
+            });
+        }
+
+        function updateIndex() {
+            const index = document.getElementById('indexType').value;
+            const values = {
+                ndvi: { avg: '0.72', max: '0.89', min: '0.45', median: '0.71', std: '0.12' },
+                evi: { avg: '0.68', max: '0.85', min: '0.42', median: '0.67', std: '0.11' },
+                ndmi: { avg: '0.45', max: '0.62', min: '0.28', median: '0.44', std: '0.09' }
+            };
+            
+            document.getElementById('avgValue').textContent = values[index].avg;
+            document.getElementById('maxValue').textContent = values[index].max;
+            document.getElementById('minValue').textContent = values[index].min;
+            document.getElementById('medianValue').textContent = values[index].median;
+            document.getElementById('stdValue').textContent = values[index].std;
+        }
+
+        function updateDates() {
+            // Simulate updating available dates
+        }
+
+        let currentSlide = 0;
+        const cardsPerView = 3;
+
+        function selectDateCard(element) {
+            document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function slideLeft() {
+            const dateList = document.getElementById('dateList');
+            const totalCards = dateList.children.length;
+            
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlider();
+            }
+        }
+
+        function slideRight() {
+            const dateList = document.getElementById('dateList');
+            const totalCards = dateList.children.length;
+            
+            if (currentSlide < totalCards - cardsPerView) {
+                currentSlide++;
+                updateSlider();
+            }
+        }
+
+        function updateSlider() {
+            const dateList = document.getElementById('dateList');
+            const cardWidth = 152; // 140px + 12px gap
+            const translateX = -currentSlide * cardWidth;
+            
+            dateList.style.transform = `translateX(${translateX}px)`;
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide >= dateList.children.length - cardsPerView;
+        }
+
+        function showAbout() {
+            alert('CropGeo Analytics - Farm Dashboard with satellite imagery and vegetation analysis.');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            initChart();
+            updateSlider();
+        });
+    </script>
+</body>
+</html>
