@@ -2,8 +2,6 @@
 
 {% block title %}CropGeo Analytics - Login{% endblock %}
 
-{% block navbar %}{% endblock %}
-
 {% block messages %}{% endblock %}
 
 {% block extra_css %}
@@ -13,17 +11,20 @@
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000"><defs><pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="%23ffffff" stroke-width="0.4" opacity="0.2"/></pattern><filter id="blur"><feGaussianBlur stdDeviation="2.5"/></filter><linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:%234A90E2;stop-opacity:1" /><stop offset="70%" style="stop-color:%2387CEEB;stop-opacity:1" /><stop offset="100%" style="stop-color:%23E0F6FF;stop-opacity:1" /></linearGradient></defs><rect width="1600" height="500" fill="url(%23skyGrad)"/><g filter="url(%23blur)"><path d="M0,400 Q400,350 800,380 T1600,360 L1600,1000 L0,1000 Z" fill="%2332CD32"/><path d="M0,420 Q300,400 600,410 T1200,400 Q1400,390 1600,400 L1600,1000 L0,1000 Z" fill="%2328A428"/><path d="M0,440 Q200,430 400,435 T800,430 Q1000,425 1600,430 L1600,1000 L0,1000 Z" fill="%2322C55E"/></g><circle cx="200" cy="150" r="60" fill="%23FFD700" opacity="0.9"><animate attributeName="opacity" values="0.7;1;0.7" dur="4s" repeatCount="indefinite"/></circle><g transform="translate(300,280)"><rect width="120" height="140" fill="%238B4513"/><polygon points="0,0 60,60 120,0" fill="%23D2691E"/><rect x="30" y="40" width="25" height="35" fill="%23654321"/><rect x="70" y="55" width="30" height="25" fill="%23654321"/><rect x="10" y="15" width="100" height="8" fill="%234169E1" opacity="0.8"/><animateTransform attributeName="transform" type="translate" values="300,280;305,275;300,280" dur="6s" repeatCount="indefinite"/></g><g transform="translate(800,220)"><rect width="200" height="80" fill="%23228B22" opacity="0.8"/><rect x="20" y="10" width="160" height="60" fill="%2332CD32" opacity="0.6"/><g><rect x="30" y="20" width="4" height="40" fill="%2332CD32"/><rect x="45" y="15" width="4" height="45" fill="%2332CD32"/><rect x="60" y="18" width="4" height="42" fill="%2332CD32"/><rect x="75" y="12" width="4" height="48" fill="%2332CD32"/><rect x="90" y="20" width="4" height="40" fill="%2332CD32"/><rect x="105" y="16" width="4" height="44" fill="%2332CD32"/><rect x="120" y="14" width="4" height="46" fill="%2332CD32"/><rect x="135" y="19" width="4" height="41" fill="%2332CD32"/><rect x="150" y="17" width="4" height="43" fill="%2332CD32"/><animateTransform attributeName="transform" type="scale" values="1;1.05;1" dur="3s" repeatCount="indefinite"/></g></g><g transform="translate(1200,180)"><rect width="150" height="100" fill="%234169E1" opacity="0.5"/><rect x="10" y="10" width="130" height="80" fill="%236495ED" opacity="0.7"/><rect x="20" y="20" width="110" height="60" fill="%23ffffff" opacity="0.3"/><circle cx="75" cy="50" r="8" fill="%23FF6B6B"/><circle cx="95" cy="40" r="6" fill="%23FFD700"/><circle cx="55" cy="60" r="7" fill="%2332CD32"/><animateTransform attributeName="transform" type="translate" values="1200,180;1205,175;1200,180" dur="8s" repeatCount="indefinite"/></g><g transform="translate(1400,250)"><ellipse cx="0" cy="50" rx="20" ry="40" fill="%23F4A460"/><circle cx="0" cy="25" r="15" fill="%23FDBCB4"/><rect x="-10" y="40" width="20" height="30" fill="%234169E1"/><rect x="-8" y="70" width="6" height="25" fill="%23000080"/><rect x="4" y="70" width="6" height="25" fill="%23000080"/><circle cx="-4" cy="22" r="2" fill="%23000"/><circle cx="4" cy="22" r="2" fill="%23000"/><path d="M-3,30 Q0,32 3,30" stroke="%23000" stroke-width="1" fill="none"/><rect x="-25" y="15" width="50" height="4" fill="%23FFD700" opacity="0.9"/><animateTransform attributeName="transform" type="translate" values="1400,250;1395,245;1400,250" dur="5s" repeatCount="indefinite"/></g><rect width="1600" height="1000" fill="url(%23grid)"/><g opacity="0.8"><circle cx="100" cy="100" r="3" fill="%2300FF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></circle><circle cx="300" cy="150" r="3" fill="%23FFFF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="500" cy="120" r="3" fill="%23FF0000"><animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/></circle><circle cx="700" cy="180" r="3" fill="%2300FF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/></circle><circle cx="900" cy="140" r="3" fill="%23FFFF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.8s" repeatCount="indefinite"/></circle><circle cx="1100" cy="160" r="3" fill="%2300FF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.3s" repeatCount="indefinite"/></circle><circle cx="1300" cy="130" r="3" fill="%23FF0000"><animate attributeName="opacity" values="0.5;1;0.5" dur="3.2s" repeatCount="indefinite"/></circle><circle cx="1500" cy="170" r="3" fill="%2300FF00"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.7s" repeatCount="indefinite"/></circle></g></svg>') center/cover;
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            flex-direction: column;
+            padding: 0;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         .main-content {
             max-width: none;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         body::before {
@@ -427,12 +428,13 @@
             <div class="divider">
                 <span>or</span>
             </div>
-            
-            <a href="{% url 'signup' %}" class="btn btn-secondary">Sign Up</a>
+<button type="button" class="btn btn-primary" onclick="window.location.href='{% url 'signup' %}'">
+    Sign Up
+</button>
         </form>
 
         <div class="forgot-password">
-            <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+            <a href="#" onclick="event.preventDefault(); showForgotPassword();">Forgot Password?</a>
         </div>
     </div>
 {% endblock %}
@@ -472,11 +474,11 @@
         }
 
         function showSignUp() {
-            alert('Join CropGeo Analytics to access advanced agricultural geospatial intelligence and satellite imagery analysis.');
+            cropgeoAlert('Join CropGeo Analytics to access advanced agricultural geospatial intelligence and satellite imagery analysis.', 'Sign up');
         }
 
         function showForgotPassword() {
-            alert('Reset your password to regain access to your CropGeo Analytics dashboard and satellite data.');
+            cropgeoAlert('Password reset is not wired to email yet. Contact your administrator if you need access to your CropGeo Analytics account.', 'Forgot password');
         }
 
         emailInput.addEventListener('input', clearErrors);

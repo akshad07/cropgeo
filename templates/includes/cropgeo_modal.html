@@ -1,0 +1,240 @@
+<style id="cropgeo-modal-styles">
+    #cropgeoModalOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    #cropgeoModalOverlay[aria-hidden="false"] {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    #cropgeoModalOverlay[hidden] {
+        display: none !important;
+    }
+
+    .cropgeo-modal {
+        width: 100%;
+        max-width: 420px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        transform: translateY(8px) scale(0.98);
+        transition: transform 0.2s ease;
+    }
+
+    #cropgeoModalOverlay[aria-hidden="false"] .cropgeo-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    .cropgeo-modal__head {
+        padding: 18px 22px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+    }
+
+    .cropgeo-modal__title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+
+    .cropgeo-modal__body {
+        padding: 20px 22px;
+        font-size: 15px;
+        line-height: 1.55;
+        color: #334155;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .cropgeo-modal__actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 22px 18px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .cropgeo-modal-btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: filter 0.15s ease, transform 0.1s ease;
+    }
+
+    .cropgeo-modal-btn:active {
+        transform: translateY(1px);
+    }
+
+    .cropgeo-modal-btn.primary {
+        background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+    }
+
+    .cropgeo-modal-btn.primary:hover {
+        filter: brightness(1.06);
+    }
+
+    .cropgeo-modal-btn.ghost {
+        background: #fff;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+    }
+
+    .cropgeo-modal-btn.ghost:hover {
+        background: #f1f5f9;
+    }
+
+    .cropgeo-modal-btn.danger {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    .cropgeo-modal-btn.danger:hover {
+        filter: brightness(1.06);
+    }
+</style>
+
+<div id="cropgeoModalOverlay" hidden aria-hidden="true" role="presentation">
+    <div class="cropgeo-modal" role="dialog" aria-modal="true" aria-labelledby="cropgeoModalTitle" aria-describedby="cropgeoModalBody">
+        <div class="cropgeo-modal__head">
+            <h2 class="cropgeo-modal__title" id="cropgeoModalTitle">CropGeo</h2>
+        </div>
+        <div class="cropgeo-modal__body" id="cropgeoModalBody"></div>
+        <div class="cropgeo-modal__actions" id="cropgeoModalActions"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window.__cropgeoModalBound) return;
+    window.__cropgeoModalBound = true;
+
+    var overlay = document.getElementById('cropgeoModalOverlay');
+    var titleEl = document.getElementById('cropgeoModalTitle');
+    var bodyEl = document.getElementById('cropgeoModalBody');
+    var actionsEl = document.getElementById('cropgeoModalActions');
+    var dialogEl = overlay ? overlay.querySelector('.cropgeo-modal') : null;
+
+    function trapFocus(e) {
+        if (e.key === 'Escape' && overlay.getAttribute('aria-hidden') === 'false') {
+            e.preventDefault();
+            var cancelBtn = document.getElementById('cropgeoModalCancel');
+            if (cancelBtn) cancelBtn.click();
+            else document.getElementById('cropgeoModalOk').click();
+        }
+    }
+
+    function openOverlay() {
+        overlay.removeAttribute('hidden');
+        overlay.hidden = false;
+        overlay.setAttribute('aria-hidden', 'false');
+        document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeOverlay() {
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.setAttribute('hidden', '');
+        document.removeEventListener('keydown', trapFocus);
+        actionsEl.innerHTML = '';
+        bodyEl.textContent = '';
+    }
+
+    function bindBackdropClose(handler) {
+        overlay.onclick = function (e) {
+            if (e.target === overlay) handler();
+        };
+    }
+
+    window.cropgeoAlert = function (message, title) {
+        title = title || 'CropGeo';
+        return new Promise(function (resolve) {
+            titleEl.textContent = title;
+            bodyEl.textContent = message;
+            actionsEl.innerHTML = '<button type="button" class="cropgeo-modal-btn primary" id="cropgeoModalOk">OK</button>';
+            var ok = document.getElementById('cropgeoModalOk');
+            ok.focus();
+            ok.onclick = function () {
+                closeOverlay();
+                overlay.onclick = null;
+                resolve();
+            };
+            bindBackdropClose(function () {
+                ok.click();
+            });
+            openOverlay();
+        });
+    };
+
+    window.cropgeoConfirm = function (message, title) {
+        title = title || 'Please confirm';
+        return new Promise(function (resolve) {
+            titleEl.textContent = title;
+            bodyEl.textContent = message;
+            actionsEl.innerHTML =
+                '<button type="button" class="cropgeo-modal-btn ghost" id="cropgeoModalCancel">Cancel</button>' +
+                '<button type="button" class="cropgeo-modal-btn primary" id="cropgeoModalOk">Confirm</button>';
+            var ok = document.getElementById('cropgeoModalOk');
+            var cancel = document.getElementById('cropgeoModalCancel');
+            cancel.focus();
+            cancel.onclick = function () {
+                closeOverlay();
+                overlay.onclick = null;
+                resolve(false);
+            };
+            ok.onclick = function () {
+                closeOverlay();
+                overlay.onclick = null;
+                resolve(true);
+            };
+            bindBackdropClose(function () {
+                cancel.click();
+            });
+            openOverlay();
+        });
+    };
+
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form || form.nodeName !== 'FORM') return;
+        var msg = form.getAttribute('data-cropgeo-confirm');
+        if (!msg || !msg.trim()) return;
+        if (form.dataset.cropgeoConfirmBypass === '1') {
+            delete form.dataset.cropgeoConfirmBypass;
+            return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        window.cropgeoConfirm(msg, 'Please confirm').then(function (ok) {
+            if (ok) {
+                form.dataset.cropgeoConfirmBypass = '1';
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
+        });
+    }, true);
+})();
+</script>

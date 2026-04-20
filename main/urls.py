@@ -18,4 +18,6 @@ urlpatterns = [
     path('farm/<uuid:farm_id>/search-satellite/', views.search_satellite_data, name='search_satellite_data'),
     path('farm/<uuid:farm_id>/get-stats/', views.get_farm_stats, name='get_farm_stats'),
     path('farm/<uuid:farm_id>/get-imagery/', views.get_farm_imagery, name='get_farm_imagery'),
+    path('farm/<uuid:farm_id>/weather/current/', views.farm_weather_current, name='farm_weather_current'),
+    path('farm/<uuid:farm_id>/weather/forecast/', views.farm_weather_forecast, name='farm_weather_forecast'),
 ]

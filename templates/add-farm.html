@@ -4,9 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CropGeo Analytics - Add Farm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css" type="text/css">
     <script src="https://cdn.jsdelivr.net/npm/ol@v8.2.0/dist/ol.js"></script>
     <style>
+        :root {
+            --navy: #1e3a8a;
+            --emerald: #059669;
+            --surface: #f8fafc;
+            --text: #1f2937;
+            --muted: #64748b;
+            --card-shadow: 0 4px 24px rgba(30, 58, 138, 0.12), 0 2px 8px rgba(30, 58, 138, 0.06);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,12 +26,13 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: 
-                linear-gradient(135deg, rgba(34, 139, 34, 0.1) 0%, rgba(30, 144, 255, 0.1) 100%),
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="%23ffffff" stroke-width="0.2" opacity="0.1"/></pattern></defs><rect width="1600" height="900" fill="%23f0f9ff"/><rect width="1600" height="900" fill="url(%23grid)"/><g opacity="0.05"><circle cx="200" cy="200" r="80" fill="%2332CD32"/><circle cx="800" cy="300" r="120" fill="%2332CD32"/><circle cx="1200" cy="150" r="100" fill="%2332CD32"/><circle cx="400" cy="600" r="90" fill="%2332CD32"/><circle cx="1000" cy="700" r="110" fill="%2332CD32"/></g></svg>') center/cover;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background:
+                radial-gradient(ellipse 120% 80% at 10% -20%, rgba(5, 150, 105, 0.12), transparent 50%),
+                radial-gradient(ellipse 100% 60% at 100% 0%, rgba(30, 58, 138, 0.1), transparent 45%),
+                linear-gradient(180deg, #eef2ff 0%, #f0fdf4 40%, #f8fafc 100%);
             min-height: 100vh;
-            color: #1f2937;
+            color: var(--text);
         }
 
         .navbar {
@@ -44,11 +57,13 @@
             align-items: center;
             gap: 12px;
             color: white;
+            text-decoration: none;
         }
 
         .logo h1 {
             font-size: 24px;
             font-weight: 800;
+            color: white;
         }
 
         .logo-icon {
@@ -58,6 +73,7 @@
         .nav-buttons {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -72,77 +88,133 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: white;
         }
 
-        .nav-btn:hover {
+        .nav-btn.btn-about {
             background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.btn-about:hover {
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
         }
 
-        .btn-logout {
+        .nav-btn.btn-logout {
             background: #ef4444;
+            color: white;
         }
 
-        .btn-logout:hover {
+        .nav-btn.btn-logout:hover {
             background: #dc2626;
+            transform: translateY(-2px);
         }
 
         .main-content {
-            max-width: 1200px;
+            max-width: 1180px;
             margin: 0 auto;
-            padding: 32px 24px;
+            padding: 28px 20px 48px;
         }
 
         .page-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 28px;
+        }
+
+        .page-eyebrow {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--emerald);
+            background: rgba(5, 150, 105, 0.12);
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 14px;
         }
 
         .page-title {
-            font-size: 36px;
+            font-size: clamp(1.75rem, 4vw, 2.35rem);
             font-weight: 800;
-            color: #1e3a8a;
-            margin-bottom: 8px;
+            color: var(--navy);
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
         }
 
         .page-subtitle {
-            color: #6b7280;
-            font-size: 18px;
+            color: var(--muted);
+            font-size: 1.05rem;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.55;
         }
 
         .form-card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
             overflow: hidden;
-            border: 1px solid #e5e7eb;
+            border: 3px solid var(--navy);
+            position: relative;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--navy), var(--emerald));
+            z-index: 1;
         }
 
         .card-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 32px;
-            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(125deg, #1e3a8a 0%, #0f766e 55%, #059669 100%);
+            padding: 28px 32px;
+            border-bottom: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='%23ffffff' fill-opacity='0.06' d='M0 40h40v40H0z'/%3E%3C/svg%3E");
+            pointer-events: none;
         }
 
         .card-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e3a8a;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fff;
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .card-title span {
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
         }
 
         .form-content {
-            padding: 32px;
+            padding: 32px 28px 36px;
+            background: linear-gradient(180deg, #fff 0%, #fafbff 100%);
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            margin-bottom: 32px;
+            grid-template-columns: minmax(300px, 1fr) minmax(0, 1.2fr);
+            gap: 36px 40px;
+            margin-bottom: 8px;
+            align-items: start;
         }
 
         .form-section {
@@ -151,13 +223,21 @@
         }
 
         .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #374151;
-            margin-bottom: 20px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .section-hint {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 18px;
         }
 
         .form-group {
@@ -167,37 +247,48 @@
 
         .form-group label {
             display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
             margin-bottom: 8px;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #e5e7eb;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
             border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #fafafa;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            background: #fff;
             font-weight: 500;
+            font-family: inherit;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #059669;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            border-color: var(--emerald);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .map-shell {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 8px 30px rgba(30, 58, 138, 0.08);
+            background: #e2e8f0;
         }
 
         .map-container {
-            height: 400px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
+            height: min(52vh, 520px);
+            min-height: 360px;
             position: relative;
         }
 
@@ -206,37 +297,68 @@
             height: 100%;
         }
 
-        .map-tools {
+        .map-toolbar {
             position: absolute;
-            top: 16px;
-            right: 16px;
+            top: 12px;
+            right: 12px;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            z-index: 5;
         }
 
         .map-tool {
-            padding: 8px 12px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+            color: #334155;
         }
 
         .map-tool:hover {
-            background: #f3f4f6;
+            border-color: #cbd5e1;
             transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
         }
 
         .map-tool.active {
-            background: #059669;
-            color: white;
+            background: linear-gradient(135deg, var(--emerald), #047857);
+            color: #fff;
+            border-color: transparent;
         }
-   .btn-about {
+
+        .map-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 14px;
+            background: linear-gradient(90deg, #f1f5f9, #f8fafc);
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .map-footer kbd {
+            font-family: inherit;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: var(--navy);
+        }
+
+        .btn-about {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -248,57 +370,74 @@
         }
         .form-actions {
             display: flex;
-            gap: 16px;
-            justify-content: center;
-            padding-top: 24px;
-            border-top: 1px solid #e5e7eb;
+            gap: 14px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            padding-top: 28px;
+            margin-top: 8px;
+            border-top: 1px solid #e2e8f0;
         }
 
         .btn {
-            padding: 16px 32px;
+            padding: 14px 28px;
             border: none;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, var(--emerald) 0%, var(--navy) 100%);
             color: white;
-            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+            box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25);
+            min-width: 180px;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 12px 28px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.75;
+            cursor: wait;
         }
 
         .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 2px solid #e5e7eb;
+            background: #fff;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+            min-width: 140px;
         }
 
         .btn-secondary:hover {
-            background: #e5e7eb;
-            transform: translateY(-2px);
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
         }
 
         .area-display {
-            background: #f0f9ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #eff6ff, #ecfdf5);
+            border: 2px solid rgba(30, 58, 138, 0.2);
+            border-radius: 12px;
             padding: 12px 16px;
             margin-top: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e40af;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .area-display span {
+            color: var(--emerald);
+            font-size: 1.05em;
         }
 
         .ol-control {
@@ -306,15 +445,131 @@
             border-radius: 8px !important;
         }
 
-        .ol-zoom {
-            top: 80px !important;
-            left: 8px !important;
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            opacity: 0;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+            pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .farm-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .farm-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .farm-modal-dialog {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            padding: 32px 28px 28px;
+            box-shadow: 0 24px 60px rgba(30, 58, 138, 0.25);
+            border: 3px solid var(--navy);
+            transform: scale(0.92) translateY(16px);
+            transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+            text-align: center;
+        }
+
+        .farm-modal.is-open .farm-modal-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        .farm-modal-dialog.error-variant {
+            border-color: #dc2626;
+        }
+
+        .farm-modal-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.2);
+        }
+
+        .farm-modal-dialog.error-variant .farm-modal-icon {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
+        }
+
+        .farm-modal-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .farm-modal-dialog.error-variant .farm-modal-title {
+            color: #b91c1c;
+        }
+
+        .farm-modal-farm-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--emerald);
+            margin-bottom: 12px;
+        }
+
+        .farm-modal-body {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 24px;
+        }
+
+        .farm-modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .farm-modal-actions .btn {
+            width: 100%;
+            min-width: unset;
         }
 
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
-                gap: 24px;
+                gap: 28px;
             }
 
             .nav-content {
@@ -323,54 +578,47 @@
             }
 
             .main-content {
-                padding: 20px 16px;
-            }
-
-            .page-title {
-                font-size: 28px;
+                padding: 20px 14px 36px;
             }
 
             .form-actions {
                 flex-direction: column;
+                justify-content: stretch;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                min-width: unset;
             }
 
             .map-container {
-                height: 300px;
+                min-height: 300px;
+                height: 42vh;
+            }
+
+            .map-toolbar {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                max-width: calc(100% - 56px);
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="logo">
-                <span class="logo-icon">🛰️</span>
-                <h1>CropGeo Analytics</h1>
-            </div>
-            <div class="nav-buttons">
-                <a href="{% url 'dashboard' %}" class="nav-btn">
-                    📊 Dashboard
-                </a>
-               <a href="{% url 'about' %}" class="nav-btn btn-about">
-                    ℹ️ About
-                </a>
-                <a href="{% url 'logout' %}" class="nav-btn btn-logout">
-                    🚪 Logout
-                </a>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar.html' %}
 
     <main class="main-content">
         <div class="page-header">
+            <p class="page-eyebrow">Farm onboarding</p>
             <h1 class="page-title">Add New Farm</h1>
-            <p class="page-subtitle">Register your agricultural land with satellite-powered precision mapping</p>
+            <p class="page-subtitle">Draw your field boundary on the map, then save details. Area from the polygon updates acres automatically.</p>
         </div>
 
         <div class="form-card">
             <div class="card-header">
                 <h2 class="card-title">
-                    🌱 Farm Registration
+                    <span aria-hidden="true">🌱</span> Farm registration
                 </h2>
             </div>
             <div class="form-content">
@@ -378,15 +626,16 @@
                     {% csrf_token %}
                     <div class="form-grid">
                         <div class="form-section">
-                            <h3 class="section-title">📋 Farm Details</h3>
-                            
+                            <h3 class="section-title">📋 Farm details</h3>
+                            <p class="section-hint">Name your farm, pick the main crop, and confirm size. Drawing on the map fills acres for you.</p>
+
                             <div class="form-group">
-                                <label for="farmName">Farm Name</label>
-                                <input type="text" id="farmName" name="farmName" placeholder="Enter farm name" required>
+                                <label for="farmName">Farm name</label>
+                                <input type="text" id="farmName" name="farmName" placeholder="e.g. North forty, Block A" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="cropType">Crop Type</label>
+                                <label for="cropType">Crop type</label>
                                 <select id="cropType" name="cropType" required>
                                     <option value="">Select crop type</option>
                                     <option value="wheat">🌾 Wheat</option>
@@ -401,19 +650,30 @@
 
                             <div class="form-group">
                                 <label for="farmSize">Size (acres)</label>
-                                <input type="number" id="farmSize" name="farmSize" placeholder="Enter size in acres" min="1" step="0.1" required>
+                                <input type="number" id="farmSize" name="farmSize" placeholder="Filled when you finish the polygon" min="0.1" step="0.1" required>
                                 <div class="area-display" id="calculatedArea" style="display: none;">
-                                    Calculated from map: <span id="mapArea">0</span> acres
+                                    From map polygon: <span id="mapArea">0</span> acres
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-section">
-                            <h3 class="section-title">🗺️ Farm Boundary</h3>
-                            
-                            <div class="map-container">
-                                <div id="map"></div>
-                                
+                            <h3 class="section-title">🗺️ Field boundary</h3>
+                            <p class="section-hint">Click on the map to place corners, double-click the last point to close the polygon. Use <strong>Clear</strong> to start over.</p>
+
+                            <div class="map-shell">
+                                <div class="map-container">
+                                    <div id="map"></div>
+                                    <div class="map-toolbar">
+                                        <button type="button" class="map-tool active" onclick="setMapTool('draw', this)">✏️ Draw</button>
+                                        <button type="button" class="map-tool" onclick="clearMap()">🗑️ Clear</button>
+                                        <button type="button" class="map-tool" id="toggleBaseBtn" onclick="toggleSatellite(this)">🛰️ Hybrid</button>
+                                    </div>
+                                </div>
+                                <div class="map-footer">
+                                    <span>Tip: one boundary per save — redraw replaces the previous shape.</span>
+                                    <span><kbd>Scroll</kbd> zoom · <kbd>Drag</kbd> pan</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -430,6 +690,22 @@
             </div>
         </div>
     </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="farmModal" class="farm-modal" role="dialog" aria-modal="true" aria-labelledby="farmModalTitle" hidden>
+        <div class="farm-modal-dialog" id="farmModalDialog">
+            <div class="farm-modal-icon" id="farmModalIcon" aria-hidden="true">✅</div>
+            <h2 class="farm-modal-title" id="farmModalTitle">Farm added</h2>
+            <p class="farm-modal-farm-name" id="farmModalFarmName"></p>
+            <p class="farm-modal-body" id="farmModalBody"></p>
+            <div class="farm-modal-actions">
+                <button type="button" class="btn btn-primary" id="farmModalPrimary">Go to dashboard</button>
+                <button type="button" class="btn btn-secondary" id="farmModalSecondary" style="display: none;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {% include 'includes/cropgeo_modal.html' %}
 
     <script>
         let map;
@@ -438,6 +714,21 @@
         let currentTool = 'draw';
         let farmBoundary = [];
         let satelliteView = true;
+
+        // Base map: Google hybrid (satellite + labels); street toggle uses roadmap (lyrs=m)
+        const GOOGLE_TILE_HYBRID = '//mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}';
+        const GOOGLE_TILE_MAP = '//mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}';
+        const INDIA_CENTER_LONLAT = [78.9629, 20.5937];
+        const INDIA_DEFAULT_ZOOM = 5;
+
+        function createGoogleBaseLayer(hybrid) {
+            return new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: hybrid ? GOOGLE_TILE_HYBRID : GOOGLE_TILE_MAP,
+                    attributions: '© Google'
+                })
+            });
+        }
 
         // Initialize OpenLayers map
         function initMap() {
@@ -463,25 +754,14 @@
                 })
             });
 
-            // Satellite layer
-            const satelliteLayer = new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                    attributions: 'Tiles © Esri'
-                })
-            });
-
-            // Street map layer
-            const streetLayer = new ol.layer.Tile({
-                source: new ol.source.OSM()
-            });
+            const baseLayer = createGoogleBaseLayer(true);
 
             map = new ol.Map({
                 target: 'map',
-                layers: [satelliteLayer, vectorLayer],
+                layers: [baseLayer, vectorLayer],
                 view: new ol.View({
-                    center: ol.proj.fromLonLat([-95.7129, 37.0902]), // Center of USA
-                    zoom: 10
+                    center: ol.proj.fromLonLat(INDIA_CENTER_LONLAT),
+                    zoom: INDIA_DEFAULT_ZOOM
                 })
             });
 
@@ -492,80 +772,144 @@
             });
 
             drawInteraction.on('drawend', function(event) {
+                const feats = vectorSource.getFeatures();
+                while (feats.length > 1) {
+                    vectorSource.removeFeature(feats[0]);
+                }
                 const geometry = event.feature.getGeometry();
                 const area = ol.sphere.getArea(geometry);
-                const areaInAcres = (area * 0.000247105).toFixed(1); // Convert m² to acres
+                const areaInAcres = (area * 0.000247105).toFixed(1);
                 updateCalculatedArea(parseFloat(areaInAcres));
             });
 
             map.addInteraction(drawInteraction);
         }
 
-        function showAbout() {
-            alert('CropGeo Analytics - Advanced satellite-powered agricultural monitoring and analytics platform. Add your farms to start monitoring crop health and optimizing yields.');
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '{% url "logout" %}';
-            }
-        }
-
-        function setMapTool(tool) {
+        function setMapTool(tool, el) {
             currentTool = tool;
-            document.querySelectorAll('.map-tool').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Remove existing interactions
+            document.querySelectorAll('.map-tool:not(#toggleBaseBtn)').forEach(btn => btn.classList.remove('active'));
+            if (el) el.classList.add('active');
+
             map.removeInteraction(drawInteraction);
-            
+
             if (tool === 'draw') {
                 drawInteraction = new ol.interaction.Draw({
                     source: vectorSource,
                     type: 'Polygon'
                 });
-                
+
                 drawInteraction.on('drawend', function(event) {
+                    const feats = vectorSource.getFeatures();
+                    while (feats.length > 1) {
+                        vectorSource.removeFeature(feats[0]);
+                    }
                     const geometry = event.feature.getGeometry();
                     const area = ol.sphere.getArea(geometry);
                     const areaInAcres = (area * 0.000247105).toFixed(1);
                     updateCalculatedArea(parseFloat(areaInAcres));
                 });
-                
+
                 map.addInteraction(drawInteraction);
             }
         }
 
-        function clearMap() {
-            vectorSource.clear();
-            updateCalculatedArea(0);
-            alert('Farm boundary cleared. You can now draw a new boundary.');
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(showToast._tid);
+            showToast._tid = setTimeout(() => t.classList.remove('show'), 2600);
         }
 
-        function toggleSatellite() {
+        let _farmModalDismissCallback = null;
+
+        function closeFarmModal() {
+            const modal = document.getElementById('farmModal');
+            modal.classList.remove('is-open');
+            modal.setAttribute('hidden', '');
+            document.body.style.overflow = '';
+            if (_farmModalDismissCallback) {
+                _farmModalDismissCallback();
+                _farmModalDismissCallback = null;
+            }
+        }
+
+        function openFarmSuccessModal(message, farmName) {
+            _farmModalDismissCallback = null;
+            const modal = document.getElementById('farmModal');
+            const dialog = document.getElementById('farmModalDialog');
+            dialog.classList.remove('error-variant');
+            document.getElementById('farmModalIcon').textContent = '✅';
+            document.getElementById('farmModalTitle').textContent = 'Farm added successfully';
+            document.getElementById('farmModalFarmName').textContent = farmName ? `"${farmName}"` : '';
+            document.getElementById('farmModalFarmName').style.display = farmName ? 'block' : 'none';
+            document.getElementById('farmModalBody').textContent = message || 'Your farm is saved. You can open it from the dashboard anytime.';
+            const primary = document.getElementById('farmModalPrimary');
+            const secondary = document.getElementById('farmModalSecondary');
+            primary.textContent = 'Go to dashboard';
+            primary.style.display = 'inline-flex';
+            secondary.style.display = 'none';
+            primary.onclick = function() {
+                window.location.href = '{% url "dashboard" %}';
+            };
+            modal.removeAttribute('hidden');
+            requestAnimationFrame(() => modal.classList.add('is-open'));
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openFarmErrorModal(errorText, onClose) {
+            _farmModalDismissCallback = typeof onClose === 'function' ? onClose : null;
+            const modal = document.getElementById('farmModal');
+            const dialog = document.getElementById('farmModalDialog');
+            dialog.classList.add('error-variant');
+            document.getElementById('farmModalIcon').textContent = '⚠️';
+            document.getElementById('farmModalTitle').textContent = 'Could not add farm';
+            document.getElementById('farmModalFarmName').style.display = 'none';
+            document.getElementById('farmModalBody').textContent = errorText || 'Something went wrong. Please try again.';
+            const primary = document.getElementById('farmModalPrimary');
+            const secondary = document.getElementById('farmModalSecondary');
+            primary.textContent = 'OK';
+            primary.style.display = 'inline-flex';
+            secondary.style.display = 'none';
+            primary.onclick = function() {
+                closeFarmModal();
+            };
+            modal.removeAttribute('hidden');
+            requestAnimationFrame(() => modal.classList.add('is-open'));
+            document.body.style.overflow = 'hidden';
+        }
+
+        document.getElementById('farmModal').addEventListener('click', function(e) {
+            if (e.target === this && document.getElementById('farmModalDialog').classList.contains('error-variant')) {
+                closeFarmModal();
+            }
+        });
+
+        function clearMap() {
+            if (!vectorSource || vectorSource.getFeatures().length === 0) {
+                showToast('Nothing to clear on the map.');
+                return;
+            }
+            cropgeoConfirm('Clear the drawn farm boundary from the map? Size and acres will reset until you draw again.', 'Clear map').then(function (ok) {
+                if (!ok) return;
+                vectorSource.clear();
+                document.getElementById('farmSize').value = '';
+                updateCalculatedArea(0);
+                showToast('Boundary cleared — draw a new polygon when ready.');
+            });
+        }
+
+        function toggleSatellite(btn) {
             satelliteView = !satelliteView;
             const layers = map.getLayers().getArray();
-            
-            // Remove current base layer
             map.removeLayer(layers[0]);
-            
+
             if (satelliteView) {
-                // Add satellite layer
-                const satelliteLayer = new ol.layer.Tile({
-                    source: new ol.source.XYZ({
-                        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                        attributions: 'Tiles © Esri'
-                    })
-                });
-                map.getLayers().insertAt(0, satelliteLayer);
-                event.target.textContent = '🛰️ Satellite';
+                map.getLayers().insertAt(0, createGoogleBaseLayer(true));
+                btn.textContent = '🛰️ Hybrid';
             } else {
-                // Add street map layer
-                const streetLayer = new ol.layer.Tile({
-                    source: new ol.source.OSM()
-                });
-                map.getLayers().insertAt(0, streetLayer);
-                event.target.textContent = '🗺️ Street';
+                map.getLayers().insertAt(0, createGoogleBaseLayer(false));
+                btn.textContent = '🗺️ Map';
             }
         }
 
@@ -579,6 +923,7 @@
                 document.getElementById('farmSize').value = acres.toFixed(1);
             } else {
                 areaDisplay.style.display = 'none';
+                document.getElementById('farmSize').value = '';
             }
         }
 
@@ -591,19 +936,19 @@
             const farmSize = formData.get('farmSize');
             
             if (!farmName || !cropType) {
-                alert('Please fill in all required fields.');
+                showToast('Please fill in farm name and crop type.');
                 return;
             }
             
             if (vectorSource.getFeatures().length === 0) {
-                alert('Please draw the farm boundary on the map.');
+                showToast('Draw the farm boundary on the map first.');
                 return;
             }
             
             // Get geometry from the drawn feature
             const features = vectorSource.getFeatures();
             if (features.length === 0) {
-                alert('Please draw the farm boundary on the map.');
+                showToast('Draw the farm boundary on the map first.');
                 return;
             }
             
@@ -622,61 +967,67 @@
             
             // Validate geometry
             if (!geometryData || !geometryData.type || !geometryData.coordinates) {
-                alert('Invalid geometry. Please try drawing again.');
+                openFarmErrorModal('Invalid boundary. Clear the map and draw your polygon again.');
                 return;
             }
-            
-            const submitBtn = this.querySelector('.btn-primary');
-            submitBtn.textContent = '⏳ Adding Farm...';
-            submitBtn.disabled = true;
-            
-            // Get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
+
+            const formEl = this;
+            cropgeoConfirm('Save farm ' + JSON.stringify(farmName) + ' with this boundary and crop? You can edit details later from the dashboard.', 'Save farm').then(function (ok) {
+                if (!ok) return;
+
+                const submitBtn = formEl.querySelector('.btn-primary');
+                submitBtn.textContent = '⏳ Adding Farm...';
+                submitBtn.disabled = true;
+
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
                         }
                     }
+                    return cookieValue;
                 }
-                return cookieValue;
-            }
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
-            
-            // Submit to Django
-            fetch('{% url "add_farm" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    farmName: farmName,
-                    cropType: cropType,
-                    farmSize: farmSize,
-                    geometry: geometryData
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+
+                fetch('{% url "add_farm" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        farmName: farmName,
+                        cropType: cropType,
+                        farmSize: farmSize,
+                        geometry: geometryData
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.href = '{% url "dashboard" %}';
-                } else {
-                    alert('Error: ' + data.error);
-                    submitBtn.textContent = '✅ Submit Farm';
-                    submitBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while adding the farm. Please try again.');
-                submitBtn.textContent = '✅ Submit Farm';
-                submitBtn.disabled = false;
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        openFarmSuccessModal(data.message, farmName);
+                        submitBtn.textContent = '✅ Submit Farm';
+                        submitBtn.disabled = true;
+                    } else {
+                        openFarmErrorModal(data.error || 'Unknown error from server.', function() {
+                            submitBtn.textContent = '✅ Submit Farm';
+                            submitBtn.disabled = false;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    openFarmErrorModal('Network or server error. Check your connection and try again.', function() {
+                        submitBtn.textContent = '✅ Submit Farm';
+                        submitBtn.disabled = false;
+                    });
+                });
             });
         });
 

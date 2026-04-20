@@ -1,0 +1,22 @@
+<nav class="navbar">
+    <div class="nav-content">
+        <a href="{% url 'dashboard' %}" class="logo">
+            <span class="logo-icon">🛰️</span>
+            <h1>CropGeo Analytics</h1>
+        </a>
+        <div class="nav-buttons">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="nav-btn btn-about">📊 Dashboard</a>
+                {% if user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="nav-btn btn-about">👨‍💼 Admin</a>
+                {% endif %}
+            {% endif %}
+            <a href="{% url 'about' %}" class="nav-btn btn-about">ℹ️ About</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="nav-btn btn-logout">🚪 Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-btn btn-about">🔐 Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

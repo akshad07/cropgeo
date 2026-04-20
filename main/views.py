@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.gis.geos import GEOSGeometry
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import JsonResponse
 import json
 import httpx
@@ -12,6 +14,7 @@ from .models import User, Farm
 from .forms import FarmForm
 from .utils import get_stats, fetch_stats, get_imagery
 from .enum import VegetationIndex, S2IndexFormulas
+from . import weather_api as farm_weather
 
 def dashboard(request):
     if not request.user.is_authenticated:
@@ -169,18 +172,59 @@ def add_farm_view(request):
     
     return render(request, 'add-farm.html')
 
+def _elided_page_numbers(paginator, page_number):
+    """Safe elided range for pagination controls (Django 4.1+)."""
+    try:
+        return list(
+            paginator.get_elided_page_range(page_number, on_each_side=1, on_ends=1)
+        )
+    except (TypeError, ValueError):
+        return list(paginator.page_range)
+
+
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard_view(request):
-    pending_users = User.objects.filter(is_approved=False, is_staff=False)
-    approved_users = User.objects.filter(is_approved=True, is_staff=False)
+    q = (request.GET.get('q') or '').strip()
+    per_page = 10
+
+    pending_base = User.objects.filter(is_approved=False, is_staff=False).order_by(
+        '-date_joined'
+    )
+    approved_base = User.objects.filter(is_approved=True, is_staff=False).order_by(
+        '-date_joined'
+    )
+
+    if q:
+        name_q = (
+            Q(email__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+        )
+        pending_base = pending_base.filter(name_q)
+        approved_base = approved_base.filter(name_q)
+
+    pending_paginator = Paginator(pending_base, per_page)
+    users_paginator = Paginator(approved_base, per_page)
+
+    pending_page = pending_paginator.get_page(request.GET.get('pending_page') or 1)
+    users_page = users_paginator.get_page(request.GET.get('users_page') or 1)
+
     all_farms = Farm.objects.all()
-    
+    pending_total = User.objects.filter(is_approved=False, is_staff=False).count()
+    approved_total = User.objects.filter(is_approved=True, is_staff=False).count()
+
     context = {
-        'pending_users': pending_users,
-        'approved_users': approved_users,
+        'pending_users': pending_page,
+        'approved_users': users_page,
+        'users_page': users_page,
+        'pending_page': pending_page,
+        'users_elided': _elided_page_numbers(users_paginator, users_page.number),
+        'pending_elided': _elided_page_numbers(pending_paginator, pending_page.number),
+        'page_ellipsis': Paginator.ELLIPSIS,
+        'q': q,
         'all_farms': all_farms,
-        'pending_count': pending_users.count(),
-        'approved_count': approved_users.count(),
+        'pending_count': pending_total,
+        'approved_count': approved_total,
         'farms_count': all_farms.count(),
     }
     return render(request, 'admin-dashboard.html', context)
@@ -273,6 +317,27 @@ def view_farm_dashboard(request, farm_id):
         'farm_center': farm_center,
     }
     return render(request, 'view-farm-dashboard.html', context)
+
+
+@login_required
+def farm_weather_current(request, farm_id):
+    """JSON: current weather at farm centroid (Open-Meteo)."""
+    farm = get_object_or_404(Farm, id=farm_id, user=request.user)
+    if not farm.geometry:
+        return JsonResponse({'error': 'Farm has no geometry'}, status=400)
+    data, status_code = farm_weather.get_current_weather_payload(farm)
+    return JsonResponse(data, status=status_code)
+
+
+@login_required
+def farm_weather_forecast(request, farm_id):
+    """JSON: daily forecast (~16 days) at farm centroid (Open-Meteo)."""
+    farm = get_object_or_404(Farm, id=farm_id, user=request.user)
+    if not farm.geometry:
+        return JsonResponse({'error': 'Farm has no geometry'}, status=400)
+    data, status_code = farm_weather.get_forecast_weather_payload(farm)
+    return JsonResponse(data, status=status_code)
+
 
 @login_required
 def search_satellite_data(request, farm_id):

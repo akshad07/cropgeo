@@ -23,7 +23,10 @@
         .navbar {
             background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
             padding: 16px 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .nav-content {
@@ -39,33 +42,56 @@
             align-items: center;
             gap: 12px;
             color: white;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo h1 {
             font-size: 24px;
             font-weight: 800;
+            color: white;
         }
 
         .nav-buttons {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            color: white;
-            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .nav-btn.btn-about {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .btn-logout {
+        .nav-btn.btn-about:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.btn-logout {
             background: #ef4444;
+            color: white;
+        }
+
+        .nav-btn.btn-logout:hover {
+            background: #dc2626;
         }
 
         .main-container {
@@ -75,40 +101,167 @@
         }
 
         .controls-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 24px rgba(30, 58, 138, 0.07), 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .control-farm-summary {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 18px 22px;
+            background: linear-gradient(105deg, rgba(5, 150, 105, 0.09) 0%, rgba(30, 58, 138, 0.07) 55%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .control-farm-summary__icon {
+            font-size: 2rem;
+            line-height: 1;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+        }
+
+        .control-farm-summary__body {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .control-farm-summary__name-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 8px 12px;
+            margin-bottom: 10px;
+        }
+
+        .control-farm-summary__name {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .control-farm-summary__acres {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #059669;
+            padding: 2px 10px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 999px;
+            border: 1px solid rgba(5, 150, 105, 0.25);
+        }
+
+        .control-farm-summary__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .farm-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .farm-meta-chip--coords {
+            font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .controls-panel__grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px 16px;
+            padding: 20px 22px 22px;
+            align-items: end;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
+            gap: 8px;
+            min-width: 0;
         }
 
         .control-group label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+            letter-spacing: 0.01em;
         }
 
         .control-group select,
-        .control-group input {
-            padding: 10px;
+        .control-group input[type="date"],
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
             border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
+            color: #1e293b;
+            background: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .control-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
         }
 
         .control-group select:focus,
         .control-group input:focus {
             outline: none;
             border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        }
+
+        .control-group--action label {
+            color: #64748b;
+        }
+
+        .btn-search-satellite {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(135deg, #059669 0%, #047857 40%, #1e3a8a 100%);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+
+        .btn-search-satellite:hover {
+            filter: brightness(1.05);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-search-satellite:active {
+            transform: translateY(1px);
         }
 
         .date-slider-container {
@@ -210,9 +363,46 @@
             margin-bottom: 20px;
         }
 
+        .map-stack {
+            position: relative;
+        }
+
         #map {
             width: 100%;
             height: 400px;
+        }
+
+        .map-loader-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(3px);
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .map-loader-spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #059669;
+            border-radius: 50%;
+            animation: mapLoaderSpin 0.85s linear infinite;
+        }
+
+        .map-loader-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        @keyframes mapLoaderSpin {
+            to { transform: rotate(360deg); }
         }
 
         .stats-grid {
@@ -267,15 +457,115 @@
             max-height: 300px;
         }
 
+        .weather-current-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.12), 0 2px 6px rgba(30, 58, 138, 0.08);
+            border: 3px solid #1e3a8a;
+        }
+
+        .weather-current-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weather-meta {
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 18px;
+            line-height: 1.6;
+            gap: 8px 16px;
+        }
+
+        .weather-meta strong {
+            color: #334155;
+        }
+
+        .weather-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+            gap: 16px;
+        }
+
+        .weather-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 20px 14px 18px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 18px rgba(30, 58, 138, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .weather-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1e3a8a, #059669);
+            opacity: 0.85;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(30, 58, 138, 0.15);
+            border-color: rgba(5, 150, 105, 0.45);
+        }
+
+        .weather-card-icon {
+            font-size: 34px;
+            line-height: 1;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+        }
+
+        .weather-card-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
+        .weather-card-unit {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #059669;
+            margin-left: 4px;
+        }
+
+        .weather-card-label {
+            margin-top: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
         @media (max-width: 768px) {
-            .controls-panel {
+            .controls-panel__grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             #map {
                 height: 300px;
             }
@@ -283,54 +573,57 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="logo">
-                🛰️ CropGeo Analytics
-            </div>
-            <div class="nav-buttons">
-                <a href="{% url 'dashboard' %}" class="nav-btn">📊 Dashboard</a>
-                <button class="nav-btn" onclick="showAbout()">ℹ️ About</button>
-                <button class="nav-btn btn-logout" onclick="logout()">🚪 Logout</button>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar.html' %}
 
     <div class="main-container">
         {% csrf_token %}
         <div class="controls-panel">
-            <div class="control-group">
-                <label>Farm: {{ farm.name }}{% if farm.size_acres %} ({{ farm.size_acres|floatformat:1 }} acres){% endif %}</label>
-                <span style="color: #6b7280; font-size: 12px;">
-                    {% if farm.crop_type %}{{ farm.get_crop_type_display }}{% endif %}
-                    {% if farm_center %} • {{ farm_center.1|floatformat:4 }}°N, {{ farm_center.0|floatformat:4 }}°W{% endif %}
-                </span>
+            <div class="control-farm-summary">
+                <div class="control-farm-summary__icon" aria-hidden="true">🌾</div>
+                <div class="control-farm-summary__body">
+                    <div class="control-farm-summary__name-row">
+                        <span class="control-farm-summary__name">{{ farm.name }}</span>
+                        {% if farm.size_acres %}
+                        <span class="control-farm-summary__acres">{{ farm.size_acres|floatformat:1 }} acres</span>
+                        {% endif %}
+                    </div>
+                    <div class="control-farm-summary__meta">
+                        {% if farm.crop_type %}
+                        <span class="farm-meta-chip">{{ farm.get_crop_type_display }}</span>
+                        {% endif %}
+                        {% if farm_center %}
+                        <span class="farm-meta-chip farm-meta-chip--coords" title="Farm centroid (lat, lon)">{{ farm_center.1|floatformat:4 }}° · {{ farm_center.0|floatformat:4 }}°</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            
-            <div class="control-group">
-                <label>Vegetation Index</label>
-                <select id="indexType" onchange="onIndexChange()">
-                    <option value="ndvi">NDVI</option>
-                    <option value="evi">EVI</option>
-                    <option value="ndmi">NDMI</option>
-                </select>
-            </div>
-            
-            <div class="control-group">
-                <label>Date Range</label>
-                <input type="date" id="startDate" value="2024-01-01">
-                <input type="date" id="endDate" value="2024-12-31" style="margin-top: 8px;">
-            </div>
-            
-            <div class="control-group">
-                <label>Cloud Cover (%)</label>
-                <input type="number" id="cloudCover" value="20" min="0" max="100" style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-            </div>
-            
-            <div class="control-group" style="justify-content: center;">
-                <button onclick="searchSatelliteData()" style="padding: 12px 24px; background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px;">
-                    🔍 Search Available Data
-                </button>
+            <div class="controls-panel__grid">
+                <div class="control-group">
+                    <label for="indexType">Vegetation index</label>
+                    <select id="indexType" onchange="onIndexChange()">
+                        <option value="ndvi">NDVI</option>
+                        <option value="evi">EVI</option>
+                        <option value="ndmi">NDMI</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="startDate">From</label>
+                    <input type="date" id="startDate" value="2024-01-01" aria-label="Acquisition start date">
+                </div>
+                <div class="control-group">
+                    <label for="endDate">To</label>
+                    <input type="date" id="endDate" value="2024-12-31" aria-label="Acquisition end date">
+                </div>
+                <div class="control-group">
+                    <label for="cloudCover">Max cloud cover (%)</label>
+                    <input type="number" id="cloudCover" value="20" min="0" max="100">
+                </div>
+                <div class="control-group control-group--action">
+                    <label for="searchSatelliteBtn">Satellite catalog</label>
+                    <button type="button" id="searchSatelliteBtn" class="btn-search-satellite" onclick="searchSatelliteData()">
+                        <span aria-hidden="true">🔍</span> Search available scenes
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -350,10 +643,16 @@
         </div>
 
         <div class="map-container">
-            <div id="map"></div>
+            <div class="map-stack">
+                <div id="map"></div>
+                <div id="mapLoaderOverlay" class="map-loader-overlay" style="display: none;" aria-hidden="true">
+                    <div class="map-loader-spinner" role="status"></div>
+                    <div class="map-loader-text">Loading stats &amp; imagery…</div>
+                </div>
+            </div>
         </div>
 
-        <div class="stats-grid">
+        <div class="stats-grid" id="indexStatsGrid" style="display: none;">
             <div class="stat-card">
                 <div class="stat-icon">📊</div>
                 <div class="stat-value" id="avgValue">-</div>
@@ -379,33 +678,28 @@
                 <div class="stat-value" id="stdValue">-</div>
                 <div class="stat-label">Std Deviation</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🌡️</div>
-                <div class="stat-value">22°C</div>
-                <div class="stat-label">Temperature</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🌧️</div>
-                <div class="stat-value">45mm</div>
-                <div class="stat-label">Rainfall</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💧</div>
-                <div class="stat-value">68%</div>
-                <div class="stat-label">Humidity</div>
-            </div>
+        </div>
+
+        <div class="weather-current-panel" id="weatherCurrentSection" style="display: none;">
+            <div class="weather-current-title">🌤️ Current weather (Open-Meteo)</div>
+            <div class="weather-meta" id="weatherMeta"></div>
+            <div class="weather-cards-grid" id="weatherCurrentGrid"></div>
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">Climate Forecast Trends</div>
+            <div class="chart-title">Climate forecast (Open-Meteo, farm centroid)</div>
             <canvas id="climateChart"></canvas>
         </div>
     </div>
+
+    {% include 'includes/cropgeo_modal.html' %}
 
     <script>
         let map;
         let imageLayer = null; // Layer for displaying satellite imagery
         let vectorSource;
+
+        const GOOGLE_TILE_HYBRID = '//mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}';
 
         function initMap() {
             vectorSource = new ol.source.Vector();
@@ -417,15 +711,16 @@
                 })
             });
 
-            const satelliteLayer = new ol.layer.Tile({
+            const baseLayer = new ol.layer.Tile({
                 source: new ol.source.XYZ({
-                    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                    url: GOOGLE_TILE_HYBRID,
+                    attributions: '© Google'
                 })
             });
 
-            // Default center (USA center) if no farm center
-            let mapCenter = [-95.7129, 37.0902];
-            let mapZoom = 10;
+            // Default view (India) when farm center is not available
+            let mapCenter = [78.9629, 20.5937];
+            let mapZoom = 5;
 
             {% if farm_geojson %}
             // Load farm geometry from GeoJSON
@@ -453,7 +748,7 @@
 
             map = new ol.Map({
                 target: 'map',
-                layers: [satelliteLayer, vectorLayer],
+                layers: [baseLayer, vectorLayer],
                 view: new ol.View({
                     center: ol.proj.fromLonLat(mapCenter),
                     zoom: mapZoom
@@ -474,46 +769,264 @@
             {% endif %}
         }
 
-        function initChart() {
-            const ctx = document.getElementById('climateChart').getContext('2d');
-            new Chart(ctx, {
+        let climateChart = null;
+
+        function formatChartDay(iso) {
+            if (!iso || typeof iso !== 'string') return '';
+            const d = iso.slice(0, 10);
+            return d.slice(5).replace('-', '/');
+        }
+
+        function initClimateChart(labels, tempMeans, et0, windSpeed) {
+            const canvas = document.getElementById('climateChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (climateChart) {
+                climateChart.destroy();
+            }
+            climateChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    labels,
                     datasets: [{
-                        label: 'Temperature (°C)',
-                        data: [22, 24, 26, 23, 21, 25, 27],
+                        label: 'Temp mean (°C)',
+                        data: tempMeans,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.25,
                         yAxisID: 'y'
                     }, {
-                        label: 'Rainfall (mm)',
-                        data: [5, 0, 12, 8, 15, 3, 0],
+                        label: 'Evapotranspiration (mm)',
+                        data: et0,
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.2,
                         yAxisID: 'y1'
                     }, {
-                        label: 'Humidity (%)',
-                        data: [68, 65, 72, 70, 75, 63, 60],
+                        label: 'Wind speed max (km/h)',
+                        data: windSpeed,
                         borderColor: '#059669',
                         backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        tension: 0.2,
                         yAxisID: 'y2'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
                     scales: {
-                        y: { type: 'linear', display: true, position: 'left' },
-                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
-                        y2: { type: 'linear', display: false }
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: '°C' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'ET₀ (mm)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            offset: true,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Wind (km/h)' }
+                        }
                     }
                 }
             });
         }
 
+        function formatCurrentScalar(key, val) {
+            if (val === null || val === undefined) return '—';
+            if (typeof val === 'string') return val;
+            const n = Number(val);
+            if (Number.isNaN(n)) return String(val);
+            if (key.startsWith('soil_moisture')) return n.toFixed(3);
+            if (key === 'interval') return String(Math.round(n));
+            if (key === 'relative_humidity' || key === 'cloud_cover') return String(Math.round(n));
+            if (key === 'uv_index_max') return n.toFixed(1);
+            return Number.isInteger(n) ? String(n) : n.toFixed(1);
+        }
+
+        function unitForCurrentField(key, units) {
+            if (!units) return '';
+            if (units[key]) return units[key];
+            if (key === 'temp') return units.temp || units.temperature || '';
+            return '';
+        }
+
+        const WEATHER_CARD_ICONS = {
+            time: '🕐',
+            interval: '⏱️',
+            temp: '🌡️',
+            apparent_temperature: '🤲',
+            relative_humidity: '💧',
+            precipitation: '🌧️',
+            rain: '☔',
+            cloud_cover: '☁️',
+            surface_pressure: '📊',
+            wind_speed: '💨',
+            wind_gusts: '🌬️',
+            apparent_temperature_max: '⬆️',
+            apparent_temperature_min: '⬇️',
+            sunrise: '🌅',
+            sunset: '🌇',
+            uv_index_max: '☀️',
+            et0_fao_evapotranspiration: '🌱',
+            soil_temperature_5cm: '🧭',
+            soil_moisture_5cm: '💦',
+        };
+
+        const WEATHER_HIDDEN_KEYS = new Set([
+            'soil_temperature_surface',
+            'soil_temperature_15cm',
+            'soil_temperature_60cm',
+            'soil_moisture_surface',
+            'soil_moisture_2cm',
+            'soil_moisture_15cm',
+            'soil_moisture_50cm',
+        ]);
+
+        function renderCurrentWeatherPanel(payload) {
+            const sec = document.getElementById('weatherCurrentSection');
+            const meta = document.getElementById('weatherMeta');
+            const grid = document.getElementById('weatherCurrentGrid');
+            if (!sec || !meta || !grid) return;
+
+            if (!payload || !payload.current || payload.error) {
+                sec.style.display = 'none';
+                return;
+            }
+
+            const cur = payload.current;
+            const units = payload.units || {};
+
+            const metaParts = [];
+            if (payload.farm_name) metaParts.push(`<span><strong>Farm</strong>: ${payload.farm_name}</span>`);
+            if (payload.farm_id) metaParts.push(`<span><strong>ID</strong>: ${payload.farm_id}</span>`);
+            if (payload.timezone != null) metaParts.push(`<span><strong>Timezone</strong>: ${payload.timezone}</span>`);
+            if (payload.elevation != null && payload.elevation !== '') {
+                metaParts.push(`<span><strong>Elevation</strong>: ${payload.elevation} m</span>`);
+            }
+            meta.innerHTML = metaParts.join('');
+
+            const order = [
+                ['time', 'Observation time'],
+                ['interval', 'Sampling interval'],
+                ['temp', 'Air temperature (2 m)'],
+                ['apparent_temperature', 'Apparent temperature'],
+                ['relative_humidity', 'Relative humidity'],
+                ['precipitation', 'Precipitation'],
+                ['rain', 'Rain'],
+                ['cloud_cover', 'Cloud cover'],
+                ['surface_pressure', 'Surface pressure'],
+                ['wind_speed', 'Wind speed (10 m)'],
+                ['wind_gusts', 'Wind gusts'],
+                ['apparent_temperature_max', 'Apparent temp. (daily max)'],
+                ['apparent_temperature_min', 'Apparent temp. (daily min)'],
+                ['sunrise', 'Sunrise'],
+                ['sunset', 'Sunset'],
+                ['uv_index_max', 'UV index (daily max)'],
+                ['et0_fao_evapotranspiration', 'ET₀ FAO evapotranspiration (daily)'],
+                ['soil_temperature_5cm', 'Soil temperature (~5 cm)'],
+                ['soil_moisture_5cm', 'Soil moisture (~5 cm)'],
+            ];
+
+            const shown = new Set();
+            let html = '';
+            for (const [key, label] of order) {
+                if (!(key in cur)) continue;
+                shown.add(key);
+                const raw = cur[key];
+                const u = unitForCurrentField(key, units);
+                const iso = u === 'iso8601';
+                const valStr = iso ? String(raw) : formatCurrentScalar(key, raw);
+                const unitHtml = u && !iso ? `<span class="weather-card-unit">${u}</span>` : '';
+                const icon = WEATHER_CARD_ICONS[key] || '📌';
+                html += `<div class="weather-card" data-field="${key}">
+                    <div class="weather-card-icon" aria-hidden="true">${icon}</div>
+                    <div class="weather-card-value">${valStr}${unitHtml}</div>
+                    <div class="weather-card-label">${label}</div>
+                </div>`;
+            }
+            for (const key of Object.keys(cur)) {
+                if (shown.has(key) || WEATHER_HIDDEN_KEYS.has(key)) continue;
+                const u = unitForCurrentField(key, units);
+                const valStr = formatCurrentScalar(key, cur[key]);
+                const unitHtml = u && u !== 'iso8601' ? `<span class="weather-card-unit">${u}</span>` : '';
+                const icon = WEATHER_CARD_ICONS[key] || '📌';
+                html += `<div class="weather-card" data-field="${key}">
+                    <div class="weather-card-icon" aria-hidden="true">${icon}</div>
+                    <div class="weather-card-value">${valStr}${unitHtml}</div>
+                    <div class="weather-card-label">${key}</div>
+                </div>`;
+            }
+            grid.innerHTML = html;
+            sec.style.display = 'block';
+        }
+
+        function loadFarmWeather() {
+            const curUrl = '{% url "farm_weather_current" farm.id %}';
+            const fcUrl = '{% url "farm_weather_forecast" farm.id %}';
+
+            Promise.all([
+                fetch(curUrl, { credentials: 'same-origin' }).then(r => r.json()),
+                fetch(fcUrl, { credentials: 'same-origin' }).then(r => r.json())
+            ]).then(([cur, fc]) => {
+                if (cur.error || cur.detail) {
+                    document.getElementById('weatherCurrentSection').style.display = 'none';
+                    console.warn('Weather current:', cur.detail || cur.error);
+                } else {
+                    renderCurrentWeatherPanel(cur);
+                }
+
+                if (fc.error || fc.detail) {
+                    console.warn('Weather forecast:', fc.detail || fc.error);
+                } else {
+                    const f = fc.forecast;
+                    if (f && Array.isArray(f.time) && f.time.length) {
+                        const maxPts = 16;
+                        const n = Math.min(f.time.length, maxPts);
+                        const labels = [];
+                        const tempMeans = [];
+                        const et0 = [];
+                        const windSpeed = [];
+                        for (let i = 0; i < n; i++) {
+                            labels.push(formatChartDay(f.time[i]));
+                            tempMeans.push(f.temp_mean != null ? Number(f.temp_mean[i]) : null);
+                            et0.push(f.evapotranspiration != null ? Number(f.evapotranspiration[i]) : null);
+                            windSpeed.push(f.wind_speed != null ? Number(f.wind_speed[i]) : null);
+                        }
+                        initClimateChart(labels, tempMeans, et0, windSpeed);
+                    }
+                }
+            }).catch(err => {
+                console.error('Farm weather load failed', err);
+                const sec = document.getElementById('weatherCurrentSection');
+                if (sec) sec.style.display = 'none';
+            });
+        }
+
         let satelliteData = [];
         let selectedDateCard = null;
+
+        function setIndexStatsGridVisible(visible) {
+            const el = document.getElementById('indexStatsGrid');
+            if (el) el.style.display = visible ? 'grid' : 'none';
+        }
+
+        function setMapLoaderVisible(visible) {
+            const el = document.getElementById('mapLoaderOverlay');
+            if (!el) return;
+            el.style.display = visible ? 'flex' : 'none';
+            el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        }
 
         function onIndexChange() {
             const indexType = document.getElementById('indexType').value;
@@ -534,6 +1047,7 @@
                 document.getElementById('minValue').textContent = '-';
                 document.getElementById('medianValue').textContent = '-';
                 document.getElementById('stdValue').textContent = '-';
+                setIndexStatsGridVisible(false);
                 
                 // Remove image layer if exists
                 if (imageLayer && map) {
@@ -549,7 +1063,7 @@
             const cloudCover = document.getElementById('cloudCover').value || 20;
             
             if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
+                cropgeoAlert('Please select both start and end dates.', 'Satellite search');
                 return;
             }
             
@@ -574,6 +1088,7 @@
             const dateList = document.getElementById('dateList');
             dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">🔍 Searching for satellite data...</div>';
             document.getElementById('dateSliderContainer').style.display = 'block';
+            setIndexStatsGridVisible(false);
             
             fetch('{% url "search_satellite_data" farm.id %}', {
                 method: 'POST',
@@ -593,14 +1108,18 @@
                     satelliteData = data.results;
                     displayDateCards(data.results);
                 } else {
-                    alert('Error: ' + data.error);
-                    dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">No data found</div>';
+                    cropgeoAlert('Error: ' + (data.error || 'Unknown error'), 'Satellite search').then(function () {
+                        dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">No data found</div>';
+                        setIndexStatsGridVisible(false);
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while searching for satellite data');
-                dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">Error loading data</div>';
+                cropgeoAlert('An error occurred while searching for satellite data.', 'Satellite search').then(function () {
+                    dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">Error loading data</div>';
+                    setIndexStatsGridVisible(false);
+                });
             });
         }
 
@@ -610,6 +1129,7 @@
             
             if (results.length === 0) {
                 dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No satellite data found for the selected date range</div>';
+                setIndexStatsGridVisible(false);
                 return;
             }
             
@@ -660,6 +1180,7 @@
         function loadStatsForDate(item) {
             if (!item || !item.id) {
                 console.error('Invalid item data');
+                setIndexStatsGridVisible(false);
                 return;
             }
             
@@ -681,6 +1202,9 @@
                 return cookieValue;
             }
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+            
+            setIndexStatsGridVisible(false);
+            setMapLoaderVisible(true);
             
             // Show loading in stats
             document.getElementById('avgValue').textContent = '...';
@@ -712,46 +1236,46 @@
                 }
             }).then(response => response.json());
             
-            // Handle stats response
-            statsPromise.then(data => {
-                if (data.success && data.stats) {
-                    const stats = data.stats;
+            Promise.all([statsPromise, imageryPromise]).then(([statsData, imgData]) => {
+                const statsOk = statsData && statsData.success && statsData.stats;
+                const imgOk = imgData && imgData.success && imgData.image && imgData.bbox;
+                
+                if (statsOk) {
+                    const stats = statsData.stats;
                     document.getElementById('avgValue').textContent = stats.mean !== null && stats.mean !== undefined ? stats.mean.toFixed(2) : '-';
                     document.getElementById('maxValue').textContent = stats.max !== null && stats.max !== undefined ? stats.max.toFixed(2) : '-';
                     document.getElementById('minValue').textContent = stats.min !== null && stats.min !== undefined ? stats.min.toFixed(2) : '-';
                     document.getElementById('medianValue').textContent = stats.median !== null && stats.median !== undefined ? stats.median.toFixed(2) : '-';
                     document.getElementById('stdValue').textContent = stats.std !== null && stats.std !== undefined ? stats.std.toFixed(2) : '-';
-                    
-                    // Store stats in the selected card
                     if (selectedDateCard) {
                         selectedDateCard.stats = stats;
                     }
                 } else {
-                    console.error('Error loading stats:', data.error || 'Unknown error');
+                    console.error('Error loading stats:', (statsData && statsData.error) || 'Unknown error');
                     document.getElementById('avgValue').textContent = '-';
                     document.getElementById('maxValue').textContent = '-';
                     document.getElementById('minValue').textContent = '-';
                     document.getElementById('medianValue').textContent = '-';
                     document.getElementById('stdValue').textContent = '-';
                 }
+                
+                if (imgOk) {
+                    displayImageOnMap(imgData.image, imgData.bbox);
+                } else {
+                    console.error('Error loading imagery:', (imgData && imgData.error) || 'Unknown error');
+                }
+                
+                setIndexStatsGridVisible(statsOk && imgOk);
             }).catch(error => {
-                console.error('Error loading stats:', error);
+                console.error('Error loading stats/imagery:', error);
                 document.getElementById('avgValue').textContent = '-';
                 document.getElementById('maxValue').textContent = '-';
                 document.getElementById('minValue').textContent = '-';
                 document.getElementById('medianValue').textContent = '-';
                 document.getElementById('stdValue').textContent = '-';
-            });
-            
-            // Handle imagery response
-            imageryPromise.then(data => {
-                if (data.success && data.image && data.bbox) {
-                    displayImageOnMap(data.image, data.bbox);
-                } else {
-                    console.error('Error loading imagery:', data.error || 'Unknown error');
-                }
-            }).catch(error => {
-                console.error('Error loading imagery:', error);
+                setIndexStatsGridVisible(false);
+            }).finally(() => {
+                setMapLoaderVisible(false);
             });
         }
         
@@ -833,19 +1357,9 @@
             document.getElementById('nextBtn').disabled = currentSlide >= dateList.children.length - cardsPerView;
         }
 
-        function showAbout() {
-            alert('CropGeo Analytics - Farm Dashboard with satellite imagery and vegetation analysis.');
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '{% url "login" %}';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
-            initChart();
+            loadFarmWeather();
             updateSlider();
         });
     </script>

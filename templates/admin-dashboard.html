@@ -20,7 +20,10 @@
         .navbar {
             background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
             padding: 16px 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .nav-content {
@@ -36,33 +39,56 @@
             align-items: center;
             gap: 12px;
             color: white;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo h1 {
             font-size: 24px;
             font-weight: 800;
+            color: white;
         }
 
         .nav-buttons {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            color: white;
-            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .nav-btn.btn-about {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .btn-logout {
+        .nav-btn.btn-about:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn.btn-logout {
             background: #ef4444;
+            color: white;
+        }
+
+        .nav-btn.btn-logout:hover {
+            background: #dc2626;
         }
 
         .main-container {
@@ -240,6 +266,67 @@
             border-color: #059669;
         }
 
+        .page-btn.disabled,
+        .page-btn[aria-disabled="true"] {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        a.page-btn {
+            color: inherit;
+        }
+
+        .page-ellipsis {
+            border: none;
+            background: transparent;
+            cursor: default;
+            pointer-events: none;
+            min-width: 1.5rem;
+            text-align: center;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .search-bar-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .search-bar-form .search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-search-users {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            color: white;
+        }
+
+        .btn-search-users:hover {
+            filter: brightness(1.05);
+        }
+
+        .search-clear {
+            font-size: 14px;
+            font-weight: 600;
+            color: #059669;
+            text-decoration: none;
+        }
+
+        .search-clear:hover {
+            text-decoration: underline;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -294,17 +381,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="logo">
-                🛰️ CropGeo Analytics - Admin
-            </div>
-            <div class="nav-buttons">
-                <a href="{% url 'dashboard' %}" class="nav-btn">📊 Dashboard</a>
-                <a href="{% url 'logout' %}" class="nav-btn btn-logout">🚪 Logout</a>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar.html' %}
 
     <div class="main-container">
         <div class="page-header">
@@ -357,13 +434,13 @@
                                 <td>Farmer</td>
                                 <td>{{ user.date_joined|date:"Y-m-d" }}</td>
                                 <td>
-                                    <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;">
+                                    <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;" data-cropgeo-confirm="Approve {{ user.email|escape }}? They will be able to sign in.">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-approve">✅ Approve</button>
                                     </form>
-                                    <form method="post" action="{% url 'reject_user' user.id %}" style="display: inline;">
+                                    <form method="post" action="{% url 'reject_user' user.id %}" style="display: inline;" data-cropgeo-confirm="Reject and permanently remove {{ user.email|escape }}? This cannot be undone.">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-reject" onclick="return confirm('Are you sure you want to reject this user?')">❌ Reject</button>
+                                        <button type="submit" class="btn btn-reject">❌ Reject</button>
                                     </form>
                                 </td>
                             </tr>
@@ -371,20 +448,50 @@
                         {% else %}
                             <tr>
                                 <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
-                                    No pending user approvals
+                                    {% if q %}No pending users match your search.{% else %}No pending user approvals{% endif %}
                                 </td>
                             </tr>
                         {% endif %}
                     </tbody>
                 </table>
             </div>
+            {% if pending_page.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Pending users pages">
+                {% if pending_page.has_previous %}
+                <a class="page-btn" href="?pending_page={{ pending_page.previous_page_number }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">← Previous</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">← Previous</span>
+                {% endif %}
+                {% for num in pending_elided %}
+                    {% if num == page_ellipsis %}
+                    <span class="page-ellipsis">…</span>
+                    {% elif num == pending_page.number %}
+                    <span class="page-btn active" aria-current="page">{{ num }}</span>
+                    {% else %}
+                    <a class="page-btn" href="?pending_page={{ num }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if pending_page.has_next %}
+                <a class="page-btn" href="?pending_page={{ pending_page.next_page_number }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">Next →</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">Next →</span>
+                {% endif %}
+                <span style="margin-left: 12px; font-size: 13px; color: #64748b;">Page {{ pending_page.number }} of {{ pending_page.paginator.num_pages }}</span>
+            </nav>
+            {% endif %}
         </div>
 
         <div class="section">
             <h2 class="section-title">👥 All Registered Users</h2>
-            <div class="search-bar">
-                <input type="text" class="search-input" placeholder="Search users by name or email..." onkeyup="searchUsers(this.value)">
-            </div>
+            <form method="get" class="search-bar-form" role="search" action="{% url 'admin_dashboard' %}">
+                <input type="search" name="q" class="search-input" placeholder="Search by name or email…" value="{{ q }}" aria-label="Search users">
+                <input type="hidden" name="users_page" value="1">
+                <input type="hidden" name="pending_page" value="1">
+                <button type="submit" class="btn-search-users">Search</button>
+                {% if q %}
+                <a class="search-clear" href="{% url 'admin_dashboard' %}">Clear search</a>
+                {% endif %}
+            </form>
             <div class="table-container">
                 <table id="usersTable">
                     <thead>
@@ -413,19 +520,19 @@
                                 <td>
                                     {% if not user.is_staff %}
                                         {% if user.is_active %}
-                                            <form method="post" action="{% url 'deactivate_user' user.id %}" style="display: inline;">
+                                            <form method="post" action="{% url 'deactivate_user' user.id %}" style="display: inline;" data-cropgeo-confirm="Deactivate {{ user.email|escape }}? They will not be able to sign in until activated again.">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-reject" onclick="return confirm('Are you sure you want to deactivate this user?')">🚫 Deactivate</button>
+                                                <button type="submit" class="btn btn-reject">🚫 Deactivate</button>
                                             </form>
                                         {% else %}
-                                            <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;">
+                                            <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;" data-cropgeo-confirm="Activate {{ user.email|escape }}? They will be able to sign in.">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-approve">✅ Activate</button>
                                             </form>
                                         {% endif %}
-                                        <form method="post" action="{% url 'delete_user' user.id %}" style="display: inline;">
+                                        <form method="post" action="{% url 'delete_user' user.id %}" style="display: inline;" data-cropgeo-confirm="Permanently delete {{ user.email|escape }}? This cannot be undone.">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">🗑️ Delete</button>
+                                            <button type="submit" class="btn btn-delete">🗑️ Delete</button>
                                         </form>
                                     {% else %}
                                         <span style="color: #6b7280; font-size: 12px;">Admin User</span>
@@ -436,95 +543,42 @@
                         {% else %}
                             <tr>
                                 <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
-                                    No approved users yet
+                                    {% if q %}No approved users match your search.{% else %}No approved users yet{% endif %}
                                 </td>
                             </tr>
                         {% endif %}
                     </tbody>
                 </table>
             </div>
-            <div class="pagination">
-                <button class="page-btn" onclick="changePage(-1)">← Previous</button>
-                <button class="page-btn active" onclick="goToPage(1)">1</button>
-                <button class="page-btn" onclick="goToPage(2)">2</button>
-                <button class="page-btn" onclick="goToPage(3)">3</button>
-                <button class="page-btn" onclick="changePage(1)">Next →</button>
-            </div>
+            {% if users_page.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Approved users pages">
+                {% if users_page.has_previous %}
+                <a class="page-btn" href="?users_page={{ users_page.previous_page_number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">← Previous</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">← Previous</span>
+                {% endif %}
+                {% for num in users_elided %}
+                    {% if num == page_ellipsis %}
+                    <span class="page-ellipsis">…</span>
+                    {% elif num == users_page.number %}
+                    <span class="page-btn active" aria-current="page">{{ num }}</span>
+                    {% else %}
+                    <a class="page-btn" href="?users_page={{ num }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if users_page.has_next %}
+                <a class="page-btn" href="?users_page={{ users_page.next_page_number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">Next →</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">Next →</span>
+                {% endif %}
+                <span style="margin-left: 12px; font-size: 13px; color: #64748b;">Page {{ users_page.number }} of {{ users_page.paginator.num_pages }} ({{ users_page.paginator.count }} total{% if q %} matching{% endif %})</span>
+            </nav>
+            {% elif users_page.paginator.count > 0 and q %}
+            <p style="margin-top: 12px; font-size: 13px; color: #64748b;">{{ users_page.paginator.count }} user{{ users_page.paginator.count|pluralize }} match your search.</p>
+            {% endif %}
         </div>
     </div>
 
-    <script>
-        let currentPage = 1;
-
-        function approveUser(email) {
-            if (confirm(`Approve user: ${email}?`)) {
-                alert(`User ${email} has been approved and can now access the system.`);
-                // Remove from pending table
-                event.target.closest('tr').remove();
-            }
-        }
-
-        function rejectUser(email) {
-            if (confirm(`Reject user: ${email}?`)) {
-                alert(`User ${email} has been rejected and notified via email.`);
-                // Remove from pending table
-                event.target.closest('tr').remove();
-            }
-        }
-
-        function deleteUser(email) {
-            if (confirm(`Delete user: ${email}? This action cannot be undone.`)) {
-                alert(`User ${email} has been permanently deleted from the system.`);
-                // Remove from users table
-                event.target.closest('tr').remove();
-            }
-        }
-
-        function searchUsers(query) {
-            const table = document.getElementById('usersTable');
-            const rows = table.getElementsByTagName('tr');
-            
-            for (let i = 1; i < rows.length; i++) {
-                const name = rows[i].cells[0].textContent.toLowerCase();
-                const email = rows[i].cells[1].textContent.toLowerCase();
-                const searchTerm = query.toLowerCase();
-                
-                if (name.includes(searchTerm) || email.includes(searchTerm)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
-        }
-
-        function changePage(direction) {
-            const newPage = currentPage + direction;
-            if (newPage >= 1 && newPage <= 3) {
-                goToPage(newPage);
-            }
-        }
-
-        function goToPage(page) {
-            currentPage = page;
-            
-            // Update active page button
-            document.querySelectorAll('.page-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent == page) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Simulate loading new page data
-            console.log(`Loading page ${page} data...`);
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                alert('Logging out... Redirecting to login page.');
-                window.location.href = '{% url "login" %}';
-            }
-        }
-    </script>
+    {% include 'includes/cropgeo_modal.html' %}
 </body>
 </html>
