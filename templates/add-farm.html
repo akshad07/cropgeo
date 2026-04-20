@@ -348,15 +348,15 @@
                 <h1>CropGeo Analytics</h1>
             </div>
             <div class="nav-buttons">
-                <a href="dashboard.html" class="nav-btn">
+                <a href="{% url 'dashboard' %}" class="nav-btn">
                     📊 Dashboard
                 </a>
-               <button class="nav-btn btn-about" onclick="showAbout()">
+               <a href="{% url 'about' %}" class="nav-btn btn-about">
                     ℹ️ About
-                </button>
-                <button class="nav-btn btn-logout" onclick="logout()">
+                </a>
+                <a href="{% url 'logout' %}" class="nav-btn btn-logout">
                     🚪 Logout
-                </button>
+                </a>
             </div>
         </div>
     </nav>
@@ -375,6 +375,7 @@
             </div>
             <div class="form-content">
                 <form id="addFarmForm">
+                    {% csrf_token %}
                     <div class="form-grid">
                         <div class="form-section">
                             <h3 class="section-title">📋 Farm Details</h3>
@@ -421,7 +422,7 @@
                         <button type="submit" class="btn btn-primary">
                             ✅ Submit Farm
                         </button>
-                        <a href="dashboard.html" class="btn btn-secondary">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
                             ❌ Cancel
                         </a>
                     </div>
@@ -506,8 +507,7 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                alert('Logging out... Redirecting to login page.');
-                window.location.href = 'login.html';
+                window.location.href = '{% url "logout" %}';
             }
         }
 
@@ -590,7 +590,7 @@
             const cropType = formData.get('cropType');
             const farmSize = formData.get('farmSize');
             
-            if (!farmName || !cropType || !farmSize) {
+            if (!farmName || !cropType) {
                 alert('Please fill in all required fields.');
                 return;
             }
@@ -600,15 +600,84 @@
                 return;
             }
             
-            // Simulate form submission
+            // Get geometry from the drawn feature
+            const features = vectorSource.getFeatures();
+            if (features.length === 0) {
+                alert('Please draw the farm boundary on the map.');
+                return;
+            }
+            
+            const geometry = features[0].getGeometry();
+            const format = new ol.format.GeoJSON();
+            
+            // Write geometry as GeoJSON and convert to WGS84 (EPSG:4326)
+            const geoJsonFeature = format.writeFeature(new ol.Feature(geometry), {
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:3857'
+            });
+            
+            // Parse to get the geometry object
+            const geoJsonObj = JSON.parse(geoJsonFeature);
+            const geometryData = geoJsonObj.geometry;
+            
+            // Validate geometry
+            if (!geometryData || !geometryData.type || !geometryData.coordinates) {
+                alert('Invalid geometry. Please try drawing again.');
+                return;
+            }
+            
             const submitBtn = this.querySelector('.btn-primary');
             submitBtn.textContent = '⏳ Adding Farm...';
             submitBtn.disabled = true;
             
-            setTimeout(() => {
-                alert(`Farm "${farmName}" has been successfully added to your dashboard!\n\nDetails:\n- Crop: ${cropType}\n- Size: ${farmSize} acres\n- Boundary: Polygon mapped with satellite precision`);
-                window.location.href = 'dashboard.html';
-            }, 2000);
+            // Get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+            
+            // Submit to Django
+            fetch('{% url "add_farm" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    farmName: farmName,
+                    cropType: cropType,
+                    farmSize: farmSize,
+                    geometry: geometryData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '{% url "dashboard" %}';
+                } else {
+                    alert('Error: ' + data.error);
+                    submitBtn.textContent = '✅ Submit Farm';
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the farm. Please try again.');
+                submitBtn.textContent = '✅ Submit Farm';
+                submitBtn.disabled = false;
+            });
         });
 
         // Add loading animation

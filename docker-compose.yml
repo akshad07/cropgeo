@@ -1,0 +1,31 @@
+# version: "3.8"
+
+# services:
+#   titiler:
+#     image: ghcr.io/developmentseed/titiler:latest
+#     container_name: titiler_service
+#     environment:
+#       - PORT=8000
+#       - AWS_NO_SIGN_REQUEST=YES   # <-- Allow public S3 access
+#     ports:
+#       - "8888:8000"   # <-- LOCALHOST ONLY
+#     networks:
+#       - geospatial_network
+#     restart: unless-stopped
+
+# networks:
+#   geospatial_network:
+#     driver: bridge
+  
+services:
+  # ── TiTiler (Raster Processing & Tiling) ───────────────────────────────────
+  titiler:
+    image: ghcr.io/developmentseed/titiler:0.15.3
+    container_name: vistamap-titiler
+    restart: unless-stopped
+    environment:
+      - PORT=8000
+    ports:
+      - "8888:8000"
+    # networks:
+    #   - vistamap-net

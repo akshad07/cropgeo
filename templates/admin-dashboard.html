@@ -92,7 +92,7 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15), 0 2px 6px rgba(30, 58, 138, 0.1);
         }
 
         .section-title {
@@ -251,7 +251,7 @@
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15), 0 2px 6px rgba(30, 58, 138, 0.1);
             text-align: center;
         }
 
@@ -300,9 +300,8 @@
                 🛰️ CropGeo Analytics - Admin
             </div>
             <div class="nav-buttons">
-                <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
-                <button class="nav-btn">👥 Manage Users</button>
-                <button class="nav-btn btn-logout" onclick="logout()">🚪 Logout</button>
+                <a href="{% url 'dashboard' %}" class="nav-btn">📊 Dashboard</a>
+                <a href="{% url 'logout' %}" class="nav-btn btn-logout">🚪 Logout</a>
             </div>
         </div>
     </nav>
@@ -316,23 +315,23 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
-                <div class="stat-value">247</div>
+                <div class="stat-value">{{ pending_count|add:approved_count }}</div>
                 <div class="stat-label">Total Users</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⏳</div>
-                <div class="stat-value">12</div>
+                <div class="stat-value">{{ pending_count }}</div>
                 <div class="stat-label">Pending Approvals</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
-                <div class="stat-value">235</div>
-                <div class="stat-label">Active Users</div>
+                <div class="stat-value">{{ approved_count }}</div>
+                <div class="stat-label">Approved Users</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🚫</div>
-                <div class="stat-value">8</div>
-                <div class="stat-label">Rejected Users</div>
+                <div class="stat-icon">🚜</div>
+                <div class="stat-value">{{ farms_count }}</div>
+                <div class="stat-label">Total Farms</div>
             </div>
         </div>
 
@@ -350,36 +349,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>John Smith</td>
-                            <td>john.smith@email.com</td>
-                            <td>Farmer</td>
-                            <td>2024-01-15</td>
-                            <td>
-                                <button class="btn btn-approve" onclick="approveUser('john.smith@email.com')">✅ Approve</button>
-                                <button class="btn btn-reject" onclick="rejectUser('john.smith@email.com')">❌ Reject</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Sarah Johnson</td>
-                            <td>sarah.j@email.com</td>
-                            <td>Analyst</td>
-                            <td>2024-01-14</td>
-                            <td>
-                                <button class="btn btn-approve" onclick="approveUser('sarah.j@email.com')">✅ Approve</button>
-                                <button class="btn btn-reject" onclick="rejectUser('sarah.j@email.com')">❌ Reject</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Mike Davis</td>
-                            <td>mike.davis@email.com</td>
-                            <td>Farmer</td>
-                            <td>2024-01-13</td>
-                            <td>
-                                <button class="btn btn-approve" onclick="approveUser('mike.davis@email.com')">✅ Approve</button>
-                                <button class="btn btn-reject" onclick="rejectUser('mike.davis@email.com')">❌ Reject</button>
-                            </td>
-                        </tr>
+                        {% if pending_users %}
+                            {% for user in pending_users %}
+                            <tr>
+                                <td>{{ user.first_name|default:"N/A" }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>Farmer</td>
+                                <td>{{ user.date_joined|date:"Y-m-d" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-approve">✅ Approve</button>
+                                    </form>
+                                    <form method="post" action="{% url 'reject_user' user.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-reject" onclick="return confirm('Are you sure you want to reject this user?')">❌ Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                    No pending user approvals
+                                </td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -402,41 +397,49 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Alice Brown</td>
-                            <td>alice.brown@email.com</td>
-                            <td>Farmer</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td><button class="btn btn-delete" onclick="deleteUser('alice.brown@email.com')">🗑️ Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td>Bob Wilson</td>
-                            <td>bob.wilson@email.com</td>
-                            <td>Analyst</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td><button class="btn btn-delete" onclick="deleteUser('bob.wilson@email.com')">🗑️ Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td>Carol Martinez</td>
-                            <td>carol.m@email.com</td>
-                            <td>Farmer</td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
-                            <td><button class="btn btn-delete" onclick="deleteUser('carol.m@email.com')">🗑️ Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td>David Lee</td>
-                            <td>david.lee@email.com</td>
-                            <td>Admin</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td><button class="btn btn-delete" onclick="deleteUser('david.lee@email.com')">🗑️ Delete</button></td>
-                        </tr>
-                        <tr>
-                            <td>Emma Taylor</td>
-                            <td>emma.taylor@email.com</td>
-                            <td>Farmer</td>
-                            <td><span class="status-badge status-rejected">Rejected</span></td>
-                            <td><button class="btn btn-delete" onclick="deleteUser('emma.taylor@email.com')">🗑️ Delete</button></td>
-                        </tr>
+                        {% if approved_users %}
+                            {% for user in approved_users %}
+                            <tr>
+                                <td>{{ user.first_name|default:"N/A" }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{% if user.is_staff %}Admin{% else %}Farmer{% endif %}</td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="status-badge status-active">Active</span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not user.is_staff %}
+                                        {% if user.is_active %}
+                                            <form method="post" action="{% url 'deactivate_user' user.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-reject" onclick="return confirm('Are you sure you want to deactivate this user?')">🚫 Deactivate</button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{% url 'approve_user' user.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-approve">✅ Activate</button>
+                                            </form>
+                                        {% endif %}
+                                        <form method="post" action="{% url 'delete_user' user.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">🗑️ Delete</button>
+                                        </form>
+                                    {% else %}
+                                        <span style="color: #6b7280; font-size: 12px;">Admin User</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                    No approved users yet
+                                </td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -519,7 +522,7 @@
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 alert('Logging out... Redirecting to login page.');
-                window.location.href = 'login.html';
+                window.location.href = '{% url "login" %}';
             }
         }
     </script>

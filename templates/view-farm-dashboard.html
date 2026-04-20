@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CropGeo Analytics - Farm Dashboard</title>
+    <title>CropGeo Analytics - {{ farm.name }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css">
     <script src="https://cdn.jsdelivr.net/npm/ol@v8.2.0/dist/ol.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -226,7 +226,7 @@
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15), 0 2px 6px rgba(30, 58, 138, 0.1);
             text-align: center;
         }
 
@@ -289,7 +289,7 @@
                 🛰️ CropGeo Analytics
             </div>
             <div class="nav-buttons">
-                <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
+                <a href="{% url 'dashboard' %}" class="nav-btn">📊 Dashboard</a>
                 <button class="nav-btn" onclick="showAbout()">ℹ️ About</button>
                 <button class="nav-btn btn-logout" onclick="logout()">🚪 Logout</button>
             </div>
@@ -297,15 +297,19 @@
     </nav>
 
     <div class="main-container">
+        {% csrf_token %}
         <div class="controls-panel">
             <div class="control-group">
-                <label>Farm: Green Valley Farm (245 acres)</label>
-                <span style="color: #6b7280; font-size: 12px;">🌾 Wheat • 40.7128°N, 74.0060°W</span>
+                <label>Farm: {{ farm.name }}{% if farm.size_acres %} ({{ farm.size_acres|floatformat:1 }} acres){% endif %}</label>
+                <span style="color: #6b7280; font-size: 12px;">
+                    {% if farm.crop_type %}{{ farm.get_crop_type_display }}{% endif %}
+                    {% if farm_center %} • {{ farm_center.1|floatformat:4 }}°N, {{ farm_center.0|floatformat:4 }}°W{% endif %}
+                </span>
             </div>
             
             <div class="control-group">
                 <label>Vegetation Index</label>
-                <select id="indexType" onchange="updateIndex()">
+                <select id="indexType" onchange="onIndexChange()">
                     <option value="ndvi">NDVI</option>
                     <option value="evi">EVI</option>
                     <option value="ndmi">NDMI</option>
@@ -314,41 +318,29 @@
             
             <div class="control-group">
                 <label>Date Range</label>
-                <input type="date" id="startDate" value="2024-01-01" onchange="updateDates()">
-                <input type="date" id="endDate" value="2024-12-31" onchange="updateDates()" style="margin-top: 8px;">
+                <input type="date" id="startDate" value="2024-01-01">
+                <input type="date" id="endDate" value="2024-12-31" style="margin-top: 8px;">
+            </div>
+            
+            <div class="control-group">
+                <label>Cloud Cover (%)</label>
+                <input type="number" id="cloudCover" value="20" min="0" max="100" style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div class="control-group" style="justify-content: center;">
+                <button onclick="searchSatelliteData()" style="padding: 12px 24px; background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px;">
+                    🔍 Search Available Data
+                </button>
             </div>
         </div>
 
-        <div class="date-slider-container">
+        <div class="date-slider-container" id="dateSliderContainer" style="display: none;">
             <div class="date-slider-title">
                 📅 Available Satellite Data
             </div>
             <div class="date-slider">
                 <div class="date-list" id="dateList">
-                    <div class="date-card selected" onclick="selectDateCard(this)">
-                        <div class="date-main">Jan 15, 2024</div>
-                        <div class="date-satellite">Landsat 8</div>
-                    </div>
-                    <div class="date-card" onclick="selectDateCard(this)">
-                        <div class="date-main">Feb 01, 2024</div>
-                        <div class="date-satellite">Sentinel-2</div>
-                    </div>
-                    <div class="date-card" onclick="selectDateCard(this)">
-                        <div class="date-main">Feb 15, 2024</div>
-                        <div class="date-satellite">Landsat 8</div>
-                    </div>
-                    <div class="date-card" onclick="selectDateCard(this)">
-                        <div class="date-main">Mar 01, 2024</div>
-                        <div class="date-satellite">Sentinel-2</div>
-                    </div>
-                    <div class="date-card" onclick="selectDateCard(this)">
-                        <div class="date-main">Mar 15, 2024</div>
-                        <div class="date-satellite">Landsat 8</div>
-                    </div>
-                    <div class="date-card" onclick="selectDateCard(this)">
-                        <div class="date-main">Apr 01, 2024</div>
-                        <div class="date-satellite">Sentinel-2</div>
-                    </div>
+                    <!-- Date cards will be populated by JavaScript -->
                 </div>
             </div>
             <div class="slider-nav">
@@ -364,27 +356,27 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📊</div>
-                <div class="stat-value" id="avgValue">0.72</div>
-                <div class="stat-label">Average NDVI</div>
+                <div class="stat-value" id="avgValue">-</div>
+                <div class="stat-label" id="avgLabel">Average <span id="indexName">NDVI</span></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📈</div>
-                <div class="stat-value" id="maxValue">0.89</div>
+                <div class="stat-value" id="maxValue">-</div>
                 <div class="stat-label">Maximum</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📉</div>
-                <div class="stat-value" id="minValue">0.45</div>
+                <div class="stat-value" id="minValue">-</div>
                 <div class="stat-label">Minimum</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🎯</div>
-                <div class="stat-value" id="medianValue">0.71</div>
+                <div class="stat-value" id="medianValue">-</div>
                 <div class="stat-label">Median</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📏</div>
-                <div class="stat-value" id="stdValue">0.12</div>
+                <div class="stat-value" id="stdValue">-</div>
                 <div class="stat-label">Std Deviation</div>
             </div>
             <div class="stat-card">
@@ -412,20 +404,11 @@
 
     <script>
         let map;
+        let imageLayer = null; // Layer for displaying satellite imagery
+        let vectorSource;
 
         function initMap() {
-            const farmCoords = [
-                [-74.0060, 40.7128],
-                [-74.0050, 40.7128],
-                [-74.0050, 40.7138],
-                [-74.0060, 40.7138],
-                [-74.0060, 40.7128]
-            ];
-
-            const farmGeometry = new ol.geom.Polygon([farmCoords.map(coord => ol.proj.fromLonLat(coord))]);
-            const farmFeature = new ol.Feature({ geometry: farmGeometry });
-
-            const vectorSource = new ol.source.Vector({ features: [farmFeature] });
+            vectorSource = new ol.source.Vector();
             const vectorLayer = new ol.layer.Vector({
                 source: vectorSource,
                 style: new ol.style.Style({
@@ -440,14 +423,55 @@
                 })
             });
 
+            // Default center (USA center) if no farm center
+            let mapCenter = [-95.7129, 37.0902];
+            let mapZoom = 10;
+
+            {% if farm_geojson %}
+            // Load farm geometry from GeoJSON
+            try {
+                const farmGeoJsonStr = '{{ farm_geojson|escapejs }}';
+                const farmGeoJson = JSON.parse(farmGeoJsonStr);
+                const format = new ol.format.GeoJSON();
+                const features = format.readFeatures(farmGeoJson, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
+                
+                if (features.length > 0) {
+                    vectorSource.addFeatures(features);
+                }
+            } catch (e) {
+                console.error('Error loading farm geometry:', e);
+            }
+            {% endif %}
+
+            {% if farm_center %}
+            mapCenter = [{{ farm_center.0 }}, {{ farm_center.1 }}];
+            mapZoom = 14;
+            {% endif %}
+
             map = new ol.Map({
                 target: 'map',
                 layers: [satelliteLayer, vectorLayer],
                 view: new ol.View({
-                    center: ol.proj.fromLonLat([-74.0055, 40.7133]),
-                    zoom: 16
+                    center: ol.proj.fromLonLat(mapCenter),
+                    zoom: mapZoom
                 })
             });
+            
+            // Store map reference globally for use in other functions
+            window.mapInstance = map;
+
+            // Fit to farm extent if geometry exists
+            {% if farm_geojson %}
+            if (vectorSource.getFeatures().length > 0) {
+                map.getView().fit(vectorSource.getExtent(), {
+                    padding: [50, 50, 50, 50],
+                    maxZoom: 18
+                });
+            }
+            {% endif %}
         }
 
         function initChart() {
@@ -488,32 +512,294 @@
             });
         }
 
-        function updateIndex() {
-            const index = document.getElementById('indexType').value;
-            const values = {
-                ndvi: { avg: '0.72', max: '0.89', min: '0.45', median: '0.71', std: '0.12' },
-                evi: { avg: '0.68', max: '0.85', min: '0.42', median: '0.67', std: '0.11' },
-                ndmi: { avg: '0.45', max: '0.62', min: '0.28', median: '0.44', std: '0.09' }
+        let satelliteData = [];
+        let selectedDateCard = null;
+
+        function onIndexChange() {
+            const indexType = document.getElementById('indexType').value;
+            const indexNames = {
+                'ndvi': 'NDVI',
+                'evi': 'EVI',
+                'ndmi': 'NDMI'
             };
+            document.getElementById('indexName').textContent = indexNames[indexType] || indexType.toUpperCase();
             
-            document.getElementById('avgValue').textContent = values[index].avg;
-            document.getElementById('maxValue').textContent = values[index].max;
-            document.getElementById('minValue').textContent = values[index].min;
-            document.getElementById('medianValue').textContent = values[index].median;
-            document.getElementById('stdValue').textContent = values[index].std;
+            // If we have a selected date card, reload both stats and image with new index
+            if (selectedDateCard && selectedDateCard.itemData) {
+                loadStatsForDate(selectedDateCard.itemData);
+            } else {
+                // Clear stats display and remove image
+                document.getElementById('avgValue').textContent = '-';
+                document.getElementById('maxValue').textContent = '-';
+                document.getElementById('minValue').textContent = '-';
+                document.getElementById('medianValue').textContent = '-';
+                document.getElementById('stdValue').textContent = '-';
+                
+                // Remove image layer if exists
+                if (imageLayer && map) {
+                    map.removeLayer(imageLayer);
+                    imageLayer = null;
+                }
+            }
         }
 
-        function updateDates() {
-            // Simulate updating available dates
+        function searchSatelliteData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const cloudCover = document.getElementById('cloudCover').value || 20;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            // Get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+            
+            // Show loading
+            const dateList = document.getElementById('dateList');
+            dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">🔍 Searching for satellite data...</div>';
+            document.getElementById('dateSliderContainer').style.display = 'block';
+            
+            fetch('{% url "search_satellite_data" farm.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate,
+                    cloud_cover: cloudCover
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    satelliteData = data.results;
+                    displayDateCards(data.results);
+                } else {
+                    alert('Error: ' + data.error);
+                    dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">No data found</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while searching for satellite data');
+                dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">Error loading data</div>';
+            });
+        }
+
+        function displayDateCards(results) {
+            const dateList = document.getElementById('dateList');
+            dateList.innerHTML = '';
+            
+            if (results.length === 0) {
+                dateList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No satellite data found for the selected date range</div>';
+                return;
+            }
+            
+            results.forEach((item, index) => {
+                const dateCard = document.createElement('div');
+                dateCard.className = 'date-card' + (index === 0 ? ' selected' : '');
+                dateCard.onclick = () => selectDateCard(dateCard, item);
+                
+                const dateObj = new Date(item.date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                dateCard.innerHTML = `
+                    <div class="date-main">${formattedDate}</div>
+                    <div class="date-satellite">${item.platform || 'Sentinel-2'}</div>
+                    ${item.cloud_cover !== null ? `<div style="font-size: 10px; margin-top: 4px; opacity: 0.7;">☁️ ${item.cloud_cover}%</div>` : ''}
+                `;
+                
+                // Store item data in the card
+                dateCard.itemData = item;
+                
+                dateList.appendChild(dateCard);
+            });
+            
+            updateSlider();
+            
+            // Select first card and load its stats
+            if (results.length > 0) {
+                selectDateCard(dateList.firstElementChild, results[0]);
+            }
+        }
+
+        function selectDateCard(element, itemData) {
+            // Remove previous selection
+            document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedDateCard = element;
+            
+            // Remove existing image layer if any
+            if (imageLayer && map) {
+                map.removeLayer(imageLayer);
+                imageLayer = null;
+            }
+            
+            // Load stats and image for this date
+            loadStatsForDate(itemData || element.itemData);
+        }
+
+        function loadStatsForDate(item) {
+            if (!item || !item.id) {
+                console.error('Invalid item data');
+                return;
+            }
+            
+            const indexType = document.getElementById('indexType').value;
+            
+            // Get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+            
+            // Show loading in stats
+            document.getElementById('avgValue').textContent = '...';
+            document.getElementById('maxValue').textContent = '...';
+            document.getElementById('minValue').textContent = '...';
+            document.getElementById('medianValue').textContent = '...';
+            document.getElementById('stdValue').textContent = '...';
+            
+            // Call both APIs in parallel
+            const statsPromise = fetch('{% url "get_farm_stats" farm.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    item_id: item.id,
+                    index_type: indexType,
+                    date: item.date,
+                    platform: item.platform,
+                    cloud_cover: item.cloud_cover
+                })
+            }).then(response => response.json());
+            
+            const imageryPromise = fetch('{% url "get_farm_imagery" farm.id %}?item_id=' + encodeURIComponent(item.id) + '&index_type=' + encodeURIComponent(indexType) + '&image_type=png', {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            }).then(response => response.json());
+            
+            // Handle stats response
+            statsPromise.then(data => {
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    document.getElementById('avgValue').textContent = stats.mean !== null && stats.mean !== undefined ? stats.mean.toFixed(2) : '-';
+                    document.getElementById('maxValue').textContent = stats.max !== null && stats.max !== undefined ? stats.max.toFixed(2) : '-';
+                    document.getElementById('minValue').textContent = stats.min !== null && stats.min !== undefined ? stats.min.toFixed(2) : '-';
+                    document.getElementById('medianValue').textContent = stats.median !== null && stats.median !== undefined ? stats.median.toFixed(2) : '-';
+                    document.getElementById('stdValue').textContent = stats.std !== null && stats.std !== undefined ? stats.std.toFixed(2) : '-';
+                    
+                    // Store stats in the selected card
+                    if (selectedDateCard) {
+                        selectedDateCard.stats = stats;
+                    }
+                } else {
+                    console.error('Error loading stats:', data.error || 'Unknown error');
+                    document.getElementById('avgValue').textContent = '-';
+                    document.getElementById('maxValue').textContent = '-';
+                    document.getElementById('minValue').textContent = '-';
+                    document.getElementById('medianValue').textContent = '-';
+                    document.getElementById('stdValue').textContent = '-';
+                }
+            }).catch(error => {
+                console.error('Error loading stats:', error);
+                document.getElementById('avgValue').textContent = '-';
+                document.getElementById('maxValue').textContent = '-';
+                document.getElementById('minValue').textContent = '-';
+                document.getElementById('medianValue').textContent = '-';
+                document.getElementById('stdValue').textContent = '-';
+            });
+            
+            // Handle imagery response
+            imageryPromise.then(data => {
+                if (data.success && data.image && data.bbox) {
+                    displayImageOnMap(data.image, data.bbox);
+                } else {
+                    console.error('Error loading imagery:', data.error || 'Unknown error');
+                }
+            }).catch(error => {
+                console.error('Error loading imagery:', error);
+            });
+        }
+        
+        function displayImageOnMap(imageDataUrl, bbox) {
+            if (!map || !bbox || bbox.length !== 4) {
+                console.error('Invalid map or bbox');
+                return;
+            }
+            
+            // Remove existing image layer if any
+            if (imageLayer) {
+                map.removeLayer(imageLayer);
+            }
+            
+            // bbox is [minx, miny, maxx, maxy] in EPSG:4326
+            const [minx, miny, maxx, maxy] = bbox;
+            
+            // Create image extent in EPSG:3857 (Web Mercator)
+            const minCoord = ol.proj.fromLonLat([minx, miny]);
+            const maxCoord = ol.proj.fromLonLat([maxx, maxy]);
+            const extent = [minCoord[0], minCoord[1], maxCoord[0], maxCoord[1]];
+            
+            // Create image source
+            const imageSource = new ol.source.ImageStatic({
+                url: imageDataUrl,
+                imageExtent: extent,
+                projection: 'EPSG:3857'
+            });
+            
+            // Create image layer
+            imageLayer = new ol.layer.Image({
+                source: imageSource,
+                opacity: 0.7 // Semi-transparent overlay
+            });
+            
+            // Add layer to map (above vector layer but below farm boundary)
+            map.addLayer(imageLayer);
+            
+            // Optionally fit map to image extent
+            map.getView().fit(extent, {
+                padding: [50, 50, 50, 50],
+                maxZoom: 18
+            });
         }
 
         let currentSlide = 0;
         const cardsPerView = 3;
 
-        function selectDateCard(element) {
-            document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
-            element.classList.add('selected');
-        }
 
         function slideLeft() {
             const dateList = document.getElementById('dateList');
@@ -553,7 +839,7 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
+                window.location.href = '{% url "login" %}';
             }
         }
 
