@@ -102,6 +102,9 @@ def signup_view(request):
 def about_view(request):
     return render(request, 'about.html')
 
+# Maximum AOI size for new farms (acres), enforced from geometry on server.
+MAX_FARM_AOI_ACRES = 10
+
 @login_required
 def add_farm_view(request):
     if not request.user.is_approved and not request.user.is_staff:
@@ -151,7 +154,26 @@ def add_farm_view(request):
                 return JsonResponse({'success': False, 'error': f'Invalid JSON: {str(e)}'}, status=400)
             except Exception as e:
                 return JsonResponse({'success': False, 'error': f'Invalid geometry: {str(e)}'}, status=400)
-            
+
+            aoi_acres = Farm.acres_from_geometry(geom)
+            if aoi_acres is None:
+                return JsonResponse(
+                    {'success': False, 'error': 'Could not compute area from the boundary. Check that the polygon is valid.'},
+                    status=400,
+                )
+            if aoi_acres > MAX_FARM_AOI_ACRES + 1e-9:
+                return JsonResponse(
+                    {
+                        'success': False,
+                        'error': (
+                            f'This boundary is about {aoi_acres:.2f} acres. '
+                            f'The maximum allowed field size is {MAX_FARM_AOI_ACRES} acres. '
+                            'Draw a smaller polygon.'
+                        ),
+                    },
+                    status=400,
+                )
+
             # Create farm
             farm = Farm.objects.create(
                 name=farm_name,

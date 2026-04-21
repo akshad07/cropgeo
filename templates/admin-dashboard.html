@@ -458,7 +458,7 @@
             {% if pending_page.paginator.num_pages > 1 %}
             <nav class="pagination" aria-label="Pending users pages">
                 {% if pending_page.has_previous %}
-                <a class="page-btn" href="?pending_page={{ pending_page.previous_page_number }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">← Previous</a>
+                <a class="page-btn" href="?pending_page={{ pending_page.previous_page_number }}&users_page={{ users_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">← Previous</a>
                 {% else %}
                 <span class="page-btn disabled" aria-disabled="true">← Previous</span>
                 {% endif %}
@@ -468,11 +468,11 @@
                     {% elif num == pending_page.number %}
                     <span class="page-btn active" aria-current="page">{{ num }}</span>
                     {% else %}
-                    <a class="page-btn" href="?pending_page={{ num }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ num }}</a>
+                    <a class="page-btn" href="?pending_page={{ num }}&users_page={{ users_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if pending_page.has_next %}
-                <a class="page-btn" href="?pending_page={{ pending_page.next_page_number }}&users_page={{ users_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">Next →</a>
+                <a class="page-btn" href="?pending_page={{ pending_page.next_page_number }}&users_page={{ users_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">Next →</a>
                 {% else %}
                 <span class="page-btn disabled" aria-disabled="true">Next →</span>
                 {% endif %}
@@ -487,6 +487,8 @@
                 <input type="search" name="q" class="search-input" placeholder="Search by name or email…" value="{{ q }}" aria-label="Search users">
                 <input type="hidden" name="users_page" value="1">
                 <input type="hidden" name="pending_page" value="1">
+                <input type="hidden" name="farm_page" value="1">
+                {% if farm_q %}<input type="hidden" name="farm_q" value="{{ farm_q }}">{% endif %}
                 <button type="submit" class="btn-search-users">Search</button>
                 {% if q %}
                 <a class="search-clear" href="{% url 'admin_dashboard' %}">Clear search</a>
@@ -498,6 +500,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Farms</th>
                             <th>Role</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -509,6 +512,7 @@
                             <tr>
                                 <td>{{ user.first_name|default:"N/A" }}</td>
                                 <td>{{ user.email }}</td>
+                                <td style="text-align: center;">{{ user.farm_count }}</td>
                                 <td>{% if user.is_staff %}Admin{% else %}Farmer{% endif %}</td>
                                 <td>
                                     {% if user.is_active %}
@@ -542,7 +546,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
                                     {% if q %}No approved users match your search.{% else %}No approved users yet{% endif %}
                                 </td>
                             </tr>
@@ -553,7 +557,7 @@
             {% if users_page.paginator.num_pages > 1 %}
             <nav class="pagination" aria-label="Approved users pages">
                 {% if users_page.has_previous %}
-                <a class="page-btn" href="?users_page={{ users_page.previous_page_number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">← Previous</a>
+                <a class="page-btn" href="?users_page={{ users_page.previous_page_number }}&pending_page={{ pending_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">← Previous</a>
                 {% else %}
                 <span class="page-btn disabled" aria-disabled="true">← Previous</span>
                 {% endif %}
@@ -563,11 +567,11 @@
                     {% elif num == users_page.number %}
                     <span class="page-btn active" aria-current="page">{{ num }}</span>
                     {% else %}
-                    <a class="page-btn" href="?users_page={{ num }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ num }}</a>
+                    <a class="page-btn" href="?users_page={{ num }}&pending_page={{ pending_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if users_page.has_next %}
-                <a class="page-btn" href="?users_page={{ users_page.next_page_number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">Next →</a>
+                <a class="page-btn" href="?users_page={{ users_page.next_page_number }}&pending_page={{ pending_page.number }}&farm_page={{ farms_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">Next →</a>
                 {% else %}
                 <span class="page-btn disabled" aria-disabled="true">Next →</span>
                 {% endif %}
@@ -575,6 +579,84 @@
             </nav>
             {% elif users_page.paginator.count > 0 and q %}
             <p style="margin-top: 12px; font-size: 13px; color: #64748b;">{{ users_page.paginator.count }} user{{ users_page.paginator.count|pluralize }} match your search.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🚜 All farms &amp; farmers</h2>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Every registered farm with the owning farmer (name and email).</p>
+            <form method="get" class="search-bar-form" role="search" action="{% url 'admin_dashboard' %}">
+                <input type="search" name="farm_q" class="search-input" placeholder="Search farms or farmers (name, email)…" value="{{ farm_q }}" aria-label="Search farms">
+                <input type="hidden" name="farm_page" value="1">
+                <input type="hidden" name="users_page" value="{{ users_page.number }}">
+                <input type="hidden" name="pending_page" value="{{ pending_page.number }}">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <button type="submit" class="btn-search-users">Search farms</button>
+                {% if farm_q %}
+                <a class="search-clear" href="?users_page={{ users_page.number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}">Clear farm search</a>
+                {% endif %}
+            </form>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Farm</th>
+                            <th>Farmer</th>
+                            <th>Farmer email</th>
+                            <th>Crop</th>
+                            <th>Size (ac)</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for farm in farms_page %}
+                            <tr>
+                                <td><strong>{{ farm.name }}</strong></td>
+                                <td>
+                                    {% if farm.user.first_name or farm.user.last_name %}
+                                        {{ farm.user.first_name }} {{ farm.user.last_name }}
+                                    {% else %}
+                                        <span style="color: #94a3b8;">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ farm.user.email }}</td>
+                                <td>{{ farm.get_crop_type_display }}</td>
+                                <td>{% if farm.size_acres %}{{ farm.size_acres|floatformat:1 }}{% else %}—{% endif %}</td>
+                                <td>{{ farm.created_at|date:"Y-m-d" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                                    {% if farm_q %}No farms match your farm search.{% else %}No farms registered yet.{% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if farms_page.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Farms pages">
+                {% if farms_page.has_previous %}
+                <a class="page-btn" href="?farm_page={{ farms_page.previous_page_number }}&users_page={{ users_page.number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">← Previous</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">← Previous</span>
+                {% endif %}
+                {% for num in farms_elided %}
+                    {% if num == page_ellipsis %}
+                    <span class="page-ellipsis">…</span>
+                    {% elif num == farms_page.number %}
+                    <span class="page-btn active" aria-current="page">{{ num }}</span>
+                    {% else %}
+                    <a class="page-btn" href="?farm_page={{ num }}&users_page={{ users_page.number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if farms_page.has_next %}
+                <a class="page-btn" href="?farm_page={{ farms_page.next_page_number }}&users_page={{ users_page.number }}&pending_page={{ pending_page.number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if farm_q %}&farm_q={{ farm_q|urlencode }}{% endif %}">Next →</a>
+                {% else %}
+                <span class="page-btn disabled" aria-disabled="true">Next →</span>
+                {% endif %}
+                <span style="margin-left: 12px; font-size: 13px; color: #64748b;">Page {{ farms_page.number }} of {{ farms_page.paginator.num_pages }} ({{ farms_page.paginator.count }} farm{{ farms_page.paginator.count|pluralize }}{% if farm_q %} matching{% endif %})</span>
+            </nav>
             {% endif %}
         </div>
     </div>

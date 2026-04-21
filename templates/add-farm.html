@@ -435,6 +435,13 @@
             color: var(--navy);
         }
 
+        .area-limit-warning {
+            color: #b91c1c;
+            font-size: 13px;
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+
         .area-display span {
             color: var(--emerald);
             font-size: 1.05em;
@@ -612,7 +619,7 @@
         <div class="page-header">
             <p class="page-eyebrow">Farm onboarding</p>
             <h1 class="page-title">Add New Farm</h1>
-            <p class="page-subtitle">Draw your field boundary on the map, then save details. Area from the polygon updates acres automatically.</p>
+            <p class="page-subtitle">Draw your field boundary on the map, then save details. Area from the polygon updates acres automatically. <strong>Maximum field size is 10 acres</strong> (AOI limit).</p>
         </div>
 
         <div class="form-card">
@@ -654,12 +661,13 @@
                                 <div class="area-display" id="calculatedArea" style="display: none;">
                                     From map polygon: <span id="mapArea">0</span> acres
                                 </div>
+                                <p class="area-limit-warning" id="areaOverLimitMsg" style="display: none;" role="alert">This boundary is over the <strong>10 acre</strong> limit. Shrink the polygon before you can save.</p>
                             </div>
                         </div>
 
                         <div class="form-section">
                             <h3 class="section-title">🗺️ Field boundary</h3>
-                            <p class="section-hint">Click on the map to place corners, double-click the last point to close the polygon. Use <strong>Clear</strong> to start over.</p>
+                            <p class="section-hint">Click on the map to place corners, double-click the last point to close the polygon. The closed shape must be <strong>10 acres or less</strong>. Use <strong>Clear</strong> to start over.</p>
 
                             <div class="map-shell">
                                 <div class="map-container">
@@ -714,6 +722,7 @@
         let currentTool = 'draw';
         let farmBoundary = [];
         let satelliteView = true;
+        const MAX_AOI_ACRES = 10;
 
         // Base map: Google hybrid (satellite + labels); street toggle uses roadmap (lyrs=m)
         const GOOGLE_TILE_HYBRID = '//mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}';
@@ -780,6 +789,9 @@
                 const area = ol.sphere.getArea(geometry);
                 const areaInAcres = (area * 0.000247105).toFixed(1);
                 updateCalculatedArea(parseFloat(areaInAcres));
+                if (parseFloat(areaInAcres) > MAX_AOI_ACRES) {
+                    showToast('Boundary exceeds ' + MAX_AOI_ACRES + ' acres — reduce the polygon to save.');
+                }
             });
 
             map.addInteraction(drawInteraction);
@@ -807,6 +819,9 @@
                     const area = ol.sphere.getArea(geometry);
                     const areaInAcres = (area * 0.000247105).toFixed(1);
                     updateCalculatedArea(parseFloat(areaInAcres));
+                    if (parseFloat(areaInAcres) > MAX_AOI_ACRES) {
+                        showToast('Boundary exceeds ' + MAX_AOI_ACRES + ' acres — reduce the polygon to save.');
+                    }
                 });
 
                 map.addInteraction(drawInteraction);
@@ -916,14 +931,19 @@
         function updateCalculatedArea(acres) {
             const areaDisplay = document.getElementById('calculatedArea');
             const mapArea = document.getElementById('mapArea');
-            
+            const overMsg = document.getElementById('areaOverLimitMsg');
+
             if (acres > 0) {
                 mapArea.textContent = acres.toFixed(1);
                 areaDisplay.style.display = 'block';
                 document.getElementById('farmSize').value = acres.toFixed(1);
+                if (overMsg) {
+                    overMsg.style.display = acres > MAX_AOI_ACRES ? 'block' : 'none';
+                }
             } else {
                 areaDisplay.style.display = 'none';
                 document.getElementById('farmSize').value = '';
+                if (overMsg) overMsg.style.display = 'none';
             }
         }
 
@@ -939,7 +959,7 @@
                 showToast('Please fill in farm name and crop type.');
                 return;
             }
-            
+
             if (vectorSource.getFeatures().length === 0) {
                 showToast('Draw the farm boundary on the map first.');
                 return;
@@ -968,6 +988,12 @@
             // Validate geometry
             if (!geometryData || !geometryData.type || !geometryData.coordinates) {
                 openFarmErrorModal('Invalid boundary. Clear the map and draw your polygon again.');
+                return;
+            }
+
+            const drawAcres = ol.sphere.getArea(geometry) * 0.000247105;
+            if (drawAcres > MAX_AOI_ACRES) {
+                showToast('Field boundary must be ' + MAX_AOI_ACRES + ' acres or less (currently about ' + drawAcres.toFixed(1) + ' acres). Draw a smaller polygon.');
                 return;
             }
 

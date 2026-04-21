@@ -38,7 +38,27 @@ class Farm(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='farms')
-    
+
+    @classmethod
+    def acres_from_geometry(cls, geometry):
+        """
+        Acres covered by the polygon, using the same UTM-area logic as save().
+        Returns None if geometry is missing or area cannot be computed.
+        """
+        if not geometry or geometry.empty:
+            return None
+        g = geometry.clone()
+        if g.srid is None or g.srid != 4326:
+            g.transform(4326)
+        lon = g.centroid.x
+        utm_zone = int((lon + 180) / 6) + 1
+        utm_srid = 32600 + utm_zone  # Northern Hemisphere UTM (matches save())
+        transformed_geom = g.transform(utm_srid, clone=True)
+        area_m2 = transformed_geom.area if transformed_geom else None
+        if not area_m2:
+            return None
+        return area_m2 * 0.000247105
+
     def save(self, *args, **kwargs):
         if self.geometry and self.geometry.srid == 4326:
             lon = self.geometry.centroid.x
