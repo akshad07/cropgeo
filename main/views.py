@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
 import json
 import httpx
@@ -203,15 +203,30 @@ def admin_dashboard_view(request):
         pending_base = pending_base.filter(name_q)
         approved_base = approved_base.filter(name_q)
 
+    approved_base = approved_base.annotate(farm_count=Count('farms', distinct=True))
+
     pending_paginator = Paginator(pending_base, per_page)
     users_paginator = Paginator(approved_base, per_page)
 
     pending_page = pending_paginator.get_page(request.GET.get('pending_page') or 1)
     users_page = users_paginator.get_page(request.GET.get('users_page') or 1)
 
-    all_farms = Farm.objects.all()
+    farm_q = (request.GET.get('farm_q') or '').strip()
+    farms_base = Farm.objects.select_related('user').order_by('-created_at')
+    if farm_q:
+        farms_base = farms_base.filter(
+            Q(name__icontains=farm_q)
+            | Q(user__email__icontains=farm_q)
+            | Q(user__first_name__icontains=farm_q)
+            | Q(user__last_name__icontains=farm_q)
+        )
+    farms_per_page = 15
+    farms_paginator = Paginator(farms_base, farms_per_page)
+    farms_page = farms_paginator.get_page(request.GET.get('farm_page') or 1)
+
     pending_total = User.objects.filter(is_approved=False, is_staff=False).count()
     approved_total = User.objects.filter(is_approved=True, is_staff=False).count()
+    farms_total = Farm.objects.count()
 
     context = {
         'pending_users': pending_page,
@@ -222,10 +237,12 @@ def admin_dashboard_view(request):
         'pending_elided': _elided_page_numbers(pending_paginator, pending_page.number),
         'page_ellipsis': Paginator.ELLIPSIS,
         'q': q,
-        'all_farms': all_farms,
+        'farms_page': farms_page,
+        'farms_elided': _elided_page_numbers(farms_paginator, farms_page.number),
+        'farm_q': farm_q,
         'pending_count': pending_total,
         'approved_count': approved_total,
-        'farms_count': all_farms.count(),
+        'farms_count': farms_total,
     }
     return render(request, 'admin-dashboard.html', context)
 

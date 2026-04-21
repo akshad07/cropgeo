@@ -438,6 +438,67 @@
             font-weight: 500;
         }
 
+        .crop-suggest-panel {
+            display: none;
+            background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            padding: 18px 20px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 18px rgba(5, 150, 105, 0.12);
+        }
+
+        .crop-suggest-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .crop-suggest-disclaimer {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+
+        .crop-suggest-meta {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 12px;
+            font-family: ui-monospace, monospace;
+        }
+
+        .crop-suggest-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .crop-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #065f46;
+            background: #fff;
+            border: 2px solid #059669;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+        }
+
+        .crop-suggest-detail {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.55;
+        }
+
         .chart-container {
             background: white;
             border-radius: 12px;
@@ -678,6 +739,27 @@
                 <div class="stat-value" id="stdValue">-</div>
                 <div class="stat-label">Std Deviation</div>
             </div>
+        </div>
+
+        <div class="crop-suggest-panel" id="cropSuggestPanel" aria-live="polite">
+            <div class="crop-suggest-title">🌾 Suggested crops (from index)</div>
+            <p class="crop-suggest-disclaimer">
+                Heuristic suggestions from your scene’s index statistics (mean-led rules). Use with local agronomy — not a prescription.
+            </p>
+            <div class="crop-suggest-season-row" style="margin-bottom: 10px; font-size: 13px;">
+                <label for="cropSeasonSelect" style="margin-right: 8px; color: #475569;">Season (India)</label>
+                <select id="cropSeasonSelect" class="crop-season-select" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff;">
+                    <option value="auto">Auto (no filter)</option>
+                    <option value="kharif">Kharif</option>
+                    <option value="rabi">Rabi</option>
+                </select>
+            </div>
+            <p class="crop-suggest-meta" id="cropSuggestMeta"></p>
+            <div class="crop-suggest-chips" id="cropSuggestChips"></div>
+            <p class="crop-suggest-detail" id="cropSuggestDetail"></p>
+            <p class="crop-suggest-disclaimer" style="margin-bottom: 0; margin-top: 10px;">
+                Registered farm crop: <strong>{{ farm.get_crop_type_display }}</strong>
+            </p>
         </div>
 
         <div class="weather-current-panel" id="weatherCurrentSection" style="display: none;">
@@ -1019,6 +1101,210 @@
         function setIndexStatsGridVisible(visible) {
             const el = document.getElementById('indexStatsGrid');
             if (el) el.style.display = visible ? 'grid' : 'none';
+            if (!visible) setCropSuggestPanelVisible(false);
+        }
+
+        function setCropSuggestPanelVisible(visible) {
+            const p = document.getElementById('cropSuggestPanel');
+            if (!p) return;
+            p.style.display = visible ? 'block' : 'none';
+        }
+
+        function suggestCropsFromIndexStats(indexType, stats, options = {}) {
+            const { season = 'auto', region = 'india' } = options;
+
+            function num(v) {
+                if (v === null || v === undefined) return null;
+                const n = Number(v);
+                return Number.isFinite(n) ? n : null;
+            }
+
+            const mean = stats ? num(stats.mean) : null;
+            const median = stats ? num(stats.median) : null;
+            const std = stats ? num(stats.std) : null;
+
+            const idx = (indexType || 'ndvi').toLowerCase();
+
+            if (mean === null) {
+                return {
+                    crops: [],
+                    suitability: 'unknown',
+                    detail: 'No valid index data available.',
+                    confidence: 0,
+                    indexLabel: idx.toUpperCase()
+                };
+            }
+
+            const uniq = (arr) => [...new Set(arr)];
+
+            let crops = [];
+            let detail = '';
+            let suitability = 'moderate';
+            let confidence = 0.5;
+
+            // ---- NDVI (Vegetation Health) ----
+            if (idx === 'ndvi') {
+                if (mean < 0.1) {
+                    suitability = 'poor';
+                    crops = ['Millets', 'Barley', 'Pulses'];
+                    detail = 'Very low vegetation. Soil may be bare or stressed.';
+                    confidence = 0.3;
+                } else if (mean < 0.3) {
+                    suitability = 'low';
+                    crops = ['Wheat', 'Barley', 'Gram'];
+                    detail = 'Sparse vegetation. Early stage or water stress.';
+                    confidence = 0.4;
+                } else if (mean < 0.55) {
+                    suitability = 'moderate';
+                    crops = ['Wheat', 'Maize', 'Soybean', 'Pulses'];
+                    detail = 'Moderate vegetation. Suitable for common field crops.';
+                    confidence = 0.6;
+                } else if (mean < 0.75) {
+                    suitability = 'high';
+                    crops = ['Rice', 'Sugarcane', 'Cotton', 'Maize'];
+                    detail = 'Healthy vegetation. Good growing conditions.';
+                    confidence = 0.75;
+                } else {
+                    suitability = 'very high';
+                    crops = ['Rice', 'Sugarcane'];
+                    detail = 'Dense canopy. Likely irrigated or peak growth.';
+                    confidence = 0.8;
+                }
+            }
+
+            // ---- EVI (Dense Vegetation Better) ----
+            else if (idx === 'evi') {
+                if (mean < 0.1) {
+                    suitability = 'poor';
+                    crops = ['Millets', 'Pulses'];
+                    detail = 'Low canopy density.';
+                    confidence = 0.3;
+                } else if (mean < 0.35) {
+                    suitability = 'moderate';
+                    crops = ['Wheat', 'Maize', 'Soybean'];
+                    detail = 'Moderate canopy growth.';
+                    confidence = 0.6;
+                } else {
+                    suitability = 'high';
+                    crops = ['Rice', 'Cotton', 'Sugarcane'];
+                    detail = 'Strong vegetation density.';
+                    confidence = 0.75;
+                }
+            }
+
+            // ---- NDMI (Moisture) ----
+            else if (idx === 'ndmi') {
+                if (mean < 0) {
+                    suitability = 'dry';
+                    crops = ['Millets', 'Barley', 'Gram'];
+                    detail = 'Low moisture. Prefer drought-tolerant crops.';
+                    confidence = 0.5;
+                } else if (mean < 0.3) {
+                    suitability = 'moderate';
+                    crops = ['Wheat', 'Maize', 'Cotton'];
+                    detail = 'Moderate moisture.';
+                    confidence = 0.6;
+                } else {
+                    suitability = 'wet';
+                    crops = ['Rice', 'Sugarcane'];
+                    detail = 'High moisture availability.';
+                    confidence = 0.75;
+                }
+            }
+
+            else {
+                return {
+                    crops: [],
+                    suitability: 'unknown',
+                    detail: 'Unsupported index type.',
+                    confidence: 0,
+                    indexLabel: idx.toUpperCase()
+                };
+            }
+
+            // ---- Adjust based on variability ----
+            const VAR_THRESHOLD = 0.14;
+            const SKEW_THRESHOLD = 0.12;
+
+            if (median !== null && Math.abs(median - mean) > SKEW_THRESHOLD) {
+                detail += ' Field is heterogeneous.';
+                confidence -= 0.1;
+            }
+
+            if (std !== null && std > VAR_THRESHOLD) {
+                detail += ' High variability detected.';
+                confidence -= 0.1;
+            }
+
+            // ---- Season-based filtering (India context) ----
+            if (region === 'india') {
+                if (season === 'kharif') {
+                    crops = crops.filter(c =>
+                        ['Rice', 'Maize', 'Cotton', 'Soybean', 'Millets', 'Sugarcane'].includes(c)
+                    );
+                } else if (season === 'rabi') {
+                    crops = crops.filter(c =>
+                        ['Wheat', 'Barley', 'Gram', 'Mustard'].includes(c)
+                    );
+                }
+            }
+
+            return {
+                crops: uniq(crops),
+                suitability,
+                confidence: Math.max(0, Math.min(1, confidence)),
+                detail,
+                mean,
+                median,
+                std,
+                indexLabel: idx.toUpperCase()
+            };
+        }
+
+        function updateCropSuggestions(indexType, stats) {
+            const panel = document.getElementById('cropSuggestPanel');
+            const chipsEl = document.getElementById('cropSuggestChips');
+            const detailEl = document.getElementById('cropSuggestDetail');
+            const metaEl = document.getElementById('cropSuggestMeta');
+            if (!panel || !chipsEl || !detailEl || !metaEl) return;
+
+            const seasonEl = document.getElementById('cropSeasonSelect');
+            const season = seasonEl && seasonEl.value ? seasonEl.value : 'auto';
+            const rec = suggestCropsFromIndexStats(indexType, stats, { season: season, region: 'india' });
+
+            if (!rec) {
+                setCropSuggestPanelVisible(false);
+                return;
+            }
+
+            const parts = [];
+            const idxLabel = rec.indexLabel || String(indexType || 'ndvi').toUpperCase();
+            parts.push(idxLabel);
+            if (rec.mean !== null && rec.mean !== undefined) {
+                parts.push('mean=' + Number(rec.mean).toFixed(3));
+            }
+            if (rec.median !== null && rec.median !== undefined) {
+                parts.push('median=' + Number(rec.median).toFixed(3));
+            }
+            if (rec.std !== null && rec.std !== undefined) {
+                parts.push('std=' + Number(rec.std).toFixed(3));
+            }
+            if (rec.suitability) parts.push('suitability=' + rec.suitability);
+            parts.push('confidence=' + Math.round((rec.confidence != null ? rec.confidence : 0) * 100) + '%');
+            metaEl.textContent = parts.join(' · ');
+
+            if (rec.crops && rec.crops.length) {
+                chipsEl.innerHTML = rec.crops.map(function (c) {
+                    return '<span class="crop-chip">' + c + '</span>';
+                }).join('');
+            } else if (rec.suitability === 'unknown') {
+                chipsEl.innerHTML = '';
+            } else {
+                chipsEl.innerHTML = '<span class="crop-chip" style="opacity: 0.65;">No crops after season filter</span>';
+            }
+
+            detailEl.textContent = rec.detail || '';
+            setCropSuggestPanelVisible(true);
         }
 
         function setMapLoaderVisible(visible) {
@@ -1264,7 +1550,13 @@
                 } else {
                     console.error('Error loading imagery:', (imgData && imgData.error) || 'Unknown error');
                 }
-                
+
+                if (statsOk) {
+                    updateCropSuggestions(indexType, statsData.stats);
+                } else {
+                    setCropSuggestPanelVisible(false);
+                }
+
                 setIndexStatsGridVisible(statsOk && imgOk);
             }).catch(error => {
                 console.error('Error loading stats/imagery:', error);
@@ -1273,6 +1565,7 @@
                 document.getElementById('minValue').textContent = '-';
                 document.getElementById('medianValue').textContent = '-';
                 document.getElementById('stdValue').textContent = '-';
+                setCropSuggestPanelVisible(false);
                 setIndexStatsGridVisible(false);
             }).finally(() => {
                 setMapLoaderVisible(false);
@@ -1361,6 +1654,17 @@
             initMap();
             loadFarmWeather();
             updateSlider();
+            const cropSeasonSelect = document.getElementById('cropSeasonSelect');
+            if (cropSeasonSelect) {
+                cropSeasonSelect.addEventListener('change', function () {
+                    if (selectedDateCard && selectedDateCard.stats) {
+                        updateCropSuggestions(
+                            document.getElementById('indexType').value,
+                            selectedDateCard.stats
+                        );
+                    }
+                });
+            }
         });
     </script>
 </body>
